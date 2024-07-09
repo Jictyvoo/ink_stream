@@ -1,0 +1,19 @@
+{
+    "name": "kindle_manga-converter",
+    "dockerFile": "Dockerfile",
+    "mounts": [
+        {
+            "source": "${localEnv:HOME}${localEnv:USERPROFILE}/.gitconfig",
+            "target": "/home/kindle_manga-converter/.gitconfig",
+            "type": "bind"
+        }
+    ],
+    "remoteUser": "kindle_manga-converter",
+    "features": {
+        "ghcr.io/devcontainers/features/common-utils": {
+            "installZsh": true,
+            "username": "kindle_manga-converter",
+            "upgradePackages": true
+        }
+    }
+}
