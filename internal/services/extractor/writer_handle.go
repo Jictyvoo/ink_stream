@@ -33,6 +33,7 @@ func (wh WriterHandle) subFolderName(f archiver.File) (directoryName string) {
 		folderDir = filepath.Join(wh.outputDirectory, directoryName)
 		wh.folderCounter.onSubDir++
 	} else {
+		wh.folderCounter.onRoot++
 		directoryName = defaultContentDir
 	}
 
@@ -40,7 +41,7 @@ func (wh WriterHandle) subFolderName(f archiver.File) (directoryName string) {
 		log.Fatal(err)
 	}
 
-	wh.folderCounter.onRoot++
+	wh.folderCounter.total++
 	return
 }
 
