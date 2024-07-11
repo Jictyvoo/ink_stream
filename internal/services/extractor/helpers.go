@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-const coverDirSuffix = "_0Cover"
+const coverDirSuffix = "0000_Cover"
 
 func checkFileFormat(filename string, file io.Reader) (io.Reader, archiver.Extractor, error) {
 	format, fileReader, err := archiver.Identify(filename, file)

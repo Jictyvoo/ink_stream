@@ -2,6 +2,7 @@ package extractor
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -67,10 +68,17 @@ func (fp *FileProcessorWorker) processFile(file FileInfo) error {
 	}
 
 	if fileWriter.folderCounter.onRoot > 0 && fileWriter.folderCounter.onSubDir > 0 {
-		err = fmt.Errorf("only one of onRoot and onSubDir may be specified")
-		return err
+		if fileWriter.folderCounter.cover > 0 {
+			err = fmt.Errorf("only one of onRoot and onSubDir may be specified")
+			return err
+		}
+		// Move all content-main to work as _0Cover
+		err = errors.Join(
+			os.Remove(fileWriter.coverDirectoryName),
+			os.Rename(fileWriter.defaultDir(), fileWriter.coverDirectoryName),
+		)
 	}
-	return nil
+	return err
 }
 
 func (fp *FileProcessorWorker) createOutDir(extractDir string, suffix string) error {

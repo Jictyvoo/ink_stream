@@ -20,6 +20,12 @@ type (
 	}
 )
 
+const defaultContentDir = "content-main"
+
+func (wh WriterHandle) defaultDir() string {
+	return filepath.Join(wh.outputDirectory, defaultContentDir)
+}
+
 func (wh WriterHandle) subFolderName(f archiver.File) (directoryName string) {
 	directoryName = filepath.Dir(f.NameInArchive)
 	if index := strings.LastIndex(directoryName, "(en)"); index >= 0 {
@@ -27,14 +33,18 @@ func (wh WriterHandle) subFolderName(f archiver.File) (directoryName string) {
 	}
 	directoryName = strings.ReplaceAll(strings.TrimSpace(directoryName), " ", "-")
 
-	const defaultContentDir = "content-main"
-	folderDir := filepath.Join(wh.outputDirectory, defaultContentDir)
+	folderDir := wh.defaultDir()
 	if directoryName != f.Name() && directoryName != "." {
 		folderDir = filepath.Join(wh.outputDirectory, directoryName)
 		wh.folderCounter.onSubDir++
 	} else {
-		wh.folderCounter.onRoot++
 		directoryName = defaultContentDir
+		switch fileIsCover(filepath.Base(f.NameInArchive)) {
+		case true:
+			wh.folderCounter.cover++
+		case false:
+			wh.folderCounter.onRoot++
+		}
 	}
 
 	if err := utils.CreateDirIfNotExist(folderDir); err != nil {
