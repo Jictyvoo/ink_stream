@@ -1,4 +1,4 @@
-package main
+package extractor
 
 import (
 	"context"
@@ -11,31 +11,31 @@ import (
 
 type (
 	FileInfo struct {
-		completeName string
-		baseName     string
+		CompleteName string
+		BaseName     string
 	}
-	fileProcessorWorker struct {
-		outputFolder   string
-		filenameStream chan FileInfo
+	FileProcessorWorker struct {
+		OutputFolder   string
+		FilenameStream chan FileInfo
 	}
 )
 
-func (fp *fileProcessorWorker) run() {
-	for filename := range fp.filenameStream {
+func (fp *FileProcessorWorker) Run() {
+	for filename := range fp.FilenameStream {
 		if err := fp.processFile(filename); err != nil {
 			log.Fatal(err)
 		}
 
 		// After finishing file processing, start the post analysis
-		if err := moveFirstFileToCoverFolder(filepath.Join(fp.outputFolder, filename.baseName)); err != nil {
+		if err := moveFirstFileToCoverFolder(filepath.Join(fp.OutputFolder, filename.BaseName)); err != nil {
 			log.Fatal(err)
 		}
 	}
 }
 
-func (fp *fileProcessorWorker) processFile(file FileInfo) error {
-	extractDir := filepath.Join(fp.outputFolder, file.baseName)
-	cbzFile := file.completeName
+func (fp *FileProcessorWorker) processFile(file FileInfo) error {
+	extractDir := filepath.Join(fp.OutputFolder, file.BaseName)
+	cbzFile := file.CompleteName
 
 	// Create the directory for the extracted files
 	if err := fp.createOutDir(extractDir, coverDirSuffix); err != nil {
@@ -73,7 +73,7 @@ func (fp *fileProcessorWorker) processFile(file FileInfo) error {
 	return nil
 }
 
-func (fp *fileProcessorWorker) createOutDir(extractDir string, suffix string) error {
+func (fp *FileProcessorWorker) createOutDir(extractDir string, suffix string) error {
 	if err := os.MkdirAll(extractDir, 0755); err != nil {
 		log.Printf("Failed to create directory for extraction: %v", err)
 		return err

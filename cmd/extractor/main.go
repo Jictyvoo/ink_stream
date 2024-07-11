@@ -1,6 +1,7 @@
 package main
 
 import (
+	"Kindle/internal/services/extractor"
 	"flag"
 	"log"
 	"os"
@@ -40,18 +41,18 @@ func main() {
 
 	var (
 		wg          sync.WaitGroup
-		sendChannel = make(chan FileInfo)
+		sendChannel = make(chan extractor.FileInfo)
 	)
 	// Create worker pool
 	for range 5 {
 		wg.Add(1)
 		go func() {
-			fp := fileProcessorWorker{
-				outputFolder:   outputFolder,
-				filenameStream: sendChannel,
+			fp := extractor.FileProcessorWorker{
+				OutputFolder:   outputFolder,
+				FilenameStream: sendChannel,
 			}
 			defer wg.Done()
-			fp.run()
+			fp.Run()
 		}()
 	}
 
@@ -59,9 +60,9 @@ func main() {
 		if strings.HasSuffix(file.Name(), ".cbz") {
 			cbzFile := filepath.Join(inputFolder, file.Name())
 			baseName := strings.TrimSuffix(file.Name(), ".cbz")
-			sendChannel <- FileInfo{
-				baseName:     baseName,
-				completeName: cbzFile,
+			sendChannel <- extractor.FileInfo{
+				BaseName:     baseName,
+				CompleteName: cbzFile,
 			}
 		}
 	}
