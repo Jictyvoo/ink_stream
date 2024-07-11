@@ -1,4 +1,4 @@
-module Kindle
+module github.com/Jictyvoo/ink_stream
 
 go 1.22
 
