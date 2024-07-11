@@ -3,6 +3,7 @@ package main
 import (
 	"Kindle/internal/services/extractor"
 	"flag"
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -15,19 +16,23 @@ const (
 )
 
 func main() {
-	var targetFolder string
-	flag.StringVar(&targetFolder, "src", "", "Target folder where files are stored")
+	var inputFolder string
+	flag.StringVar(&inputFolder, "src", "", "Target folder where files are stored")
 	flag.Parse()
 
-	if targetFolder == "" {
+	if inputFolder == "" {
 		log.Fatal("Target folder is required")
 	}
 
 	var (
-		inputFolder  = resourcesFolder + "/input_books/" + targetFolder
-		outputFolder = resourcesFolder + "/extracted/" + targetFolder
+		lastFolderName = filepath.Base(inputFolder)
+		rootDir        = filepath.Dir(strings.TrimSuffix(strings.Trim(inputFolder, "/"), lastFolderName))
 	)
+	rootDir = strings.TrimSuffix(strings.Trim(rootDir, "/"), filepath.Base(rootDir))
 
+	var outputFolder = filepath.Join(rootDir, "extracted", lastFolderName)
+	fmt.Printf("Using target folder %s\n", inputFolder)
+	fmt.Printf("Using output folder %s\n", outputFolder)
 	// Ensure the output folder exists
 	if err := os.MkdirAll(outputFolder, 0755); err != nil {
 		log.Fatalf("Failed to create output folder: %v", err)
