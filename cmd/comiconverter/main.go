@@ -3,17 +3,41 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/Jictyvoo/ink_stream/internal/utils"
 	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
+	"unicode"
 )
 
 const kccScriptPath = "/opt/kcc/kcc-c2e.py"
 
+func normalizeOutputName(name string) string {
+	var builder strings.Builder
+	for _, character := range name {
+		var (
+			isUpper  = unicode.IsUpper(character)
+			isLower  = unicode.IsLower(character)
+			isNumber = unicode.IsNumber(character)
+		)
+		if unicode.IsSpace(character) {
+			builder.WriteRune('_')
+		} else if isUpper || isLower || isNumber {
+			builder.WriteRune(character)
+		}
+	}
+
+	return builder.String()
+}
+
 func runKccScript(extractDir, outputDir string) {
 	lastFolderName := filepath.Base(extractDir)
-	outputFolder := filepath.Join(outputDir, lastFolderName)
+	outputFolder := filepath.Join(outputDir, normalizeOutputName(lastFolderName))
+	if err := utils.CreateDirIfNotExist(outputFolder); err != nil {
+		log.Fatalf("Failed to create kcc script directory %s: %s", outputDir, err)
+	}
 
 	cmd := exec.Command(
 		kccScriptPath,
@@ -25,11 +49,11 @@ func runKccScript(extractDir, outputDir string) {
 		extractDir,
 	)
 
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 	fmt.Printf("Running command: %s\n\n", cmd.String())
-	if output, err := cmd.CombinedOutput(); err != nil {
-		log.Printf("Failed to run kcc-c2e.py on %s: %v\n%s", extractDir, err, string(output))
-	} else {
-		fmt.Printf("Successfully processed %s\n", extractDir)
+	if err := cmd.Run(); err != nil {
+		log.Printf("Failed to run kcc-c2e.py on %s: %v\n", extractDir, err)
 	}
 }
 
