@@ -1,6 +1,7 @@
 package extractor
 
 import (
+	"Kindle/internal/utils"
 	"context"
 	"github.com/mholt/archiver/v4"
 	"io"
@@ -35,10 +36,8 @@ func (wh WriterHandle) subFolderName(f archiver.File) (directoryName string) {
 		directoryName = defaultContentDir
 	}
 
-	if _, err := os.Stat(folderDir); os.IsNotExist(err) {
-		if err = os.MkdirAll(folderDir, os.ModePerm); err != nil {
-			log.Fatal(err)
-		}
+	if err := utils.CreateDirIfNotExist(folderDir); err != nil {
+		log.Fatal(err)
 	}
 
 	wh.folderCounter.onRoot++
