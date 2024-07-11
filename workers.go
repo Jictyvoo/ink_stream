@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -24,12 +25,16 @@ func (fp *fileProcessorWorker) run() {
 		if err := fp.processFile(filename); err != nil {
 			log.Fatal(err)
 		}
+
+		// After finishing file processing, start the post analysis
+		if err := moveFirstFileToCoverFolder(filepath.Join(fp.outputFolder, filename.baseName)); err != nil {
+			log.Fatal(err)
+		}
 	}
 }
 
 func (fp *fileProcessorWorker) processFile(file FileInfo) error {
-	const coverDirSuffix = "_0Cover"
-	extractDir := filepath.Join(outputFolder, file.baseName)
+	extractDir := filepath.Join(fp.outputFolder, file.baseName)
 	cbzFile := file.completeName
 
 	// Create the directory for the extracted files
@@ -53,13 +58,18 @@ func (fp *fileProcessorWorker) processFile(file FileInfo) error {
 
 	fileWriter := WriterHandle{
 		outputDirectory:    extractDir,
-		coverDirectoryName: extractDir + "/" + coverDirSuffix,
+		coverDirectoryName: filepath.Join(extractDir, coverDirSuffix),
+		folderCounter:      &folderInfoCounter{},
 	}
 	if err = format.Extract(ctx, fileReader, getAllNames(cbzFile), fileWriter.handler); err != nil {
 		log.Printf("Failed to extract %s: %v", cbzFile, err)
 		return err
 	}
 
+	if fileWriter.folderCounter.onRoot > 0 && fileWriter.folderCounter.onSubDir > 0 {
+		err = fmt.Errorf("only one of onRoot and onSubDir may be specified")
+		return err
+	}
 	return nil
 }
 
@@ -70,7 +80,7 @@ func (fp *fileProcessorWorker) createOutDir(extractDir string, suffix string) er
 	}
 
 	// Create a covers output directory
-	if err := os.MkdirAll(extractDir+"/"+suffix, 0755); err != nil {
+	if err := os.MkdirAll(filepath.Join(extractDir, suffix), 0755); err != nil {
 		log.Printf("Failed to create directory for extraction: %v", err)
 		return err
 	}

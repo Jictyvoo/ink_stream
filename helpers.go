@@ -5,7 +5,10 @@ import (
 	"github.com/mholt/archiver/v4"
 	"io"
 	"io/fs"
+	"strings"
 )
+
+const coverDirSuffix = "_0Cover"
 
 func checkFileFormat(filename string, file io.Reader) (io.Reader, archiver.Extractor, error) {
 	format, fileReader, err := archiver.Identify(filename, file)
@@ -20,8 +23,8 @@ func checkFileFormat(filename string, file io.Reader) (io.Reader, archiver.Extra
 
 	// or maybe it's compressed and you want to decompress it?
 	if decom, ok := format.(archiver.Decompressor); ok {
-		rc, err := decom.OpenReader(fileReader)
-		if err != nil {
+		var rc io.ReadCloser
+		if rc, err = decom.OpenReader(fileReader); err != nil {
 			return nil, nil, err
 		}
 		defer rc.Close()
@@ -35,13 +38,22 @@ func getAllNames(filename string) (result []string) {
 	if err != nil {
 		return nil
 	}
+
 	err = fs.WalkDir(fsys, ".", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
+		}
+		if d.IsDir() {
+			return nil
 		}
 
 		result = append(result, path)
 		return nil
 	})
+
 	return
+}
+
+func fileIsCover(filename string) bool {
+	return strings.Contains(strings.ToLower(filename), ".cover")
 }

@@ -10,30 +10,39 @@ import (
 	"strings"
 )
 
-type WriterHandle struct {
-	outputDirectory    string
-	coverDirectoryName string
-}
+type (
+	folderInfoCounter struct{ onRoot, cover, onSubDir, total uint32 }
+	WriterHandle      struct {
+		outputDirectory    string
+		coverDirectoryName string
+		folderCounter      *folderInfoCounter
+	}
+)
 
-func (wh WriterHandle) subFolderName(f archiver.File) string {
-	directoryName := filepath.Dir(f.NameInArchive)
+func (wh WriterHandle) subFolderName(f archiver.File) (directoryName string) {
+	directoryName = filepath.Dir(f.NameInArchive)
 	if index := strings.LastIndex(directoryName, "(en)"); index >= 0 {
 		directoryName = directoryName[0:index]
 	}
 	directoryName = strings.ReplaceAll(strings.TrimSpace(directoryName), " ", "-")
 
+	const defaultContentDir = "content-main"
+	folderDir := filepath.Join(wh.outputDirectory, defaultContentDir)
 	if directoryName != f.Name() && directoryName != "." {
-		folderDir := filepath.Join(wh.outputDirectory, directoryName)
-		if _, err := os.Stat(folderDir); os.IsNotExist(err) {
-			if err = os.MkdirAll(folderDir, os.ModePerm); err != nil {
-				log.Fatal(err)
-			}
-		}
-
-		return directoryName
+		folderDir = filepath.Join(wh.outputDirectory, directoryName)
+		wh.folderCounter.onSubDir++
+	} else {
+		directoryName = defaultContentDir
 	}
 
-	return ""
+	if _, err := os.Stat(folderDir); os.IsNotExist(err) {
+		if err = os.MkdirAll(folderDir, os.ModePerm); err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	wh.folderCounter.onRoot++
+	return
 }
 
 func (wh WriterHandle) handler(_ context.Context, f archiver.File) error {
@@ -48,11 +57,10 @@ func (wh WriterHandle) handler(_ context.Context, f archiver.File) error {
 	}
 
 	destinationFolder := wh.outputDirectory
-	if strings.Contains(strings.ToLower(filename), ".cover") {
+	if fileIsCover(filename) {
 		destinationFolder = wh.coverDirectoryName
-	}
-
-	if subFolderName := wh.subFolderName(f); subFolderName != "" {
+		wh.folderCounter.cover++
+	} else if subFolderName := wh.subFolderName(f); subFolderName != "" {
 		destinationFolder = filepath.Join(wh.outputDirectory, subFolderName)
 	}
 
