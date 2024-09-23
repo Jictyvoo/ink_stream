@@ -2,10 +2,11 @@ package extractor
 
 import (
 	"context"
-	"github.com/mholt/archiver/v4"
 	"io"
 	"io/fs"
 	"strings"
+
+	"github.com/mholt/archiver/v4"
 )
 
 const coverDirSuffix = "0000_Cover"

@@ -3,16 +3,14 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/Jictyvoo/ink_stream/internal/services/extractor"
 	"log"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"sync"
-)
 
-const (
-	resourcesFolder = "./resources"
+	"github.com/Jictyvoo/ink_stream/internal/services/extractor"
 )
 
 func main() {
@@ -61,13 +59,15 @@ func main() {
 		}()
 	}
 
+	allowedFormats := []string{".cbz", ".cbr", ".zip", ".rar"}
 	for _, file := range files {
-		if strings.HasSuffix(file.Name(), ".cbz") {
-			cbzFile := filepath.Join(inputFolder, file.Name())
-			baseName := strings.TrimSuffix(file.Name(), ".cbz")
+		fileExt := filepath.Ext(file.Name())
+		if slices.Contains(allowedFormats, fileExt) {
+			fileAbsolutePath := filepath.Join(inputFolder, file.Name())
+			baseName := strings.TrimSuffix(file.Name(), fileExt)
 			sendChannel <- extractor.FileInfo{
 				BaseName:     baseName,
-				CompleteName: cbzFile,
+				CompleteName: fileAbsolutePath,
 			}
 		}
 	}

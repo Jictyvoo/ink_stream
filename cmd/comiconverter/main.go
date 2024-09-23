@@ -3,13 +3,14 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/Jictyvoo/ink_stream/internal/utils"
 	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 	"unicode"
+
+	"github.com/Jictyvoo/ink_stream/internal/utils"
 )
 
 const kccScriptPath = "/opt/kcc/kcc-c2e.py"
