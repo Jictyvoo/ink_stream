@@ -1,7 +1,7 @@
 package deviceprof
 
 type (
-	Resolution    [2]uint
+	Resolution    struct{ Width, Height uint }
 	DeviceProfile struct {
 		Name       string
 		Resolution Resolution
