@@ -19,7 +19,7 @@ func NewStepAutoContrast(cutLow, cutHigh float64) StepAutoContrastImage {
 }
 
 // AutoContrast applies autocontrast to an image.
-func (sgsi StepAutoContrastImage) AutoContrast(img image.Image) image.Image {
+func (step StepAutoContrastImage) AutoContrast(img image.Image) image.Image {
 	bounds := img.Bounds()
 	newImg := image.NewRGBA(bounds)
 
@@ -33,9 +33,9 @@ func (sgsi StepAutoContrastImage) AutoContrast(img image.Image) image.Image {
 	)
 
 	// Apply cutoff to histogram
-	if sgsi.cutoff != [2]float64{} {
+	if step.cutoff != [2]float64{} {
 		for i := range uint8(3) {
-			newChannel := imgutils.ApplyCutoff(histogram.Channel(i), sgsi.cutoff[0], sgsi.cutoff[1])
+			newChannel := imgutils.ApplyCutoff(histogram.Channel(i), step.cutoff[0], step.cutoff[1])
 			histogram.Set(i, newChannel)
 		}
 	}
@@ -96,7 +96,7 @@ func (sgsi StepAutoContrastImage) AutoContrast(img image.Image) image.Image {
 	return newImg
 }
 
-func (sgsi StepAutoContrastImage) PerformExec(state *pipeState, opts processOptions) (err error) {
+func (step StepAutoContrastImage) PerformExec(state *pipeState, opts processOptions) (err error) {
 	if opts.gamma < 0.1 {
 		if opts.applyColor {
 			opts.gamma = 1.0
@@ -104,13 +104,13 @@ func (sgsi StepAutoContrastImage) PerformExec(state *pipeState, opts processOpti
 	}
 
 	if uint16(opts.gamma) == 1 || opts.gamma == 0 {
-		state.img = sgsi.AutoContrast(state.img)
+		state.img = step.AutoContrast(state.img)
 		return
 	}
 
-	if err = sgsi.gammaCorrect.PerformExec(state, opts); err != nil {
+	if err = step.gammaCorrect.PerformExec(state, opts); err != nil {
 		return
 	}
-	state.img = sgsi.AutoContrast(state.img)
+	state.img = step.AutoContrast(state.img)
 	return
 }
