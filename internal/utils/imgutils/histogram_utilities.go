@@ -18,15 +18,12 @@ type (
 // CalculateHistogram calculates the histogram for each color channel in an image.
 func CalculateHistogram(img image.Image) ImageHistogram {
 	var histogram [3]ChannelHistogram
-	bounds := img.Bounds()
 
-	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
-		for x := bounds.Min.X; x < bounds.Max.X; x++ {
-			r, g, b, _ := img.At(x, y).RGBA()
-			histogram[0][r>>8]++
-			histogram[1][g>>8]++
-			histogram[2][b>>8]++
-		}
+	for x, y := range Iterator(img) {
+		r, g, b, _ := img.At(x, y).RGBA()
+		histogram[0][r>>8]++
+		histogram[1][g>>8]++
+		histogram[2][b>>8]++
 	}
 
 	return ImageHistogram{data: histogram}

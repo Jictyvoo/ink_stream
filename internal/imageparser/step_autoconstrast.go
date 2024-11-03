@@ -36,17 +36,16 @@ func (sgsi StepAutoContrastImage) GammaCorrect(img image.Image, gamma float64) i
 	for i := 0; i < imgutils.MaxPixelValue+1; i++ {
 		lut[i] = correction(uint8(i))
 	}
-	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
-		for x := bounds.Min.X; x < bounds.Max.X; x++ {
-			r, g, b, a := img.At(x, y).RGBA()
 
-			// Applying the LUT to each channel, assuming 8-bit image (values scaled down from 16-bit)
-			newR := lut[r>>8]
-			newG := lut[g>>8]
-			newB := lut[b>>8]
+	for x, y := range imgutils.Iterator(img) {
+		r, g, b, a := img.At(x, y).RGBA()
 
-			newImg.Set(x, y, color.RGBA{R: newR, G: newG, B: newB, A: uint8(a >> 8)})
-		}
+		// Applying the LUT to each channel, assuming 8-bit image (values scaled down from 16-bit)
+		newR := lut[r>>8]
+		newG := lut[g>>8]
+		newB := lut[b>>8]
+
+		newImg.Set(x, y, color.RGBA{R: newR, G: newG, B: newB, A: uint8(a >> 8)})
 	}
 
 	return newImg
@@ -92,16 +91,14 @@ func (sgsi StepAutoContrastImage) AutoContrast(img image.Image) image.Image {
 		}
 		return uint8(value)
 	}
-	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
-		for x := bounds.Min.X; x < bounds.Max.X; x++ {
-			r, g, b, a := img.At(x, y).RGBA()
-			// Adjust each channel individually, using `clamp` to keep values within the 0-255 range.
-			newR := clamp(scale[0] * float64(r>>8-uint32(minVal[0])))
-			newG := clamp(scale[1] * float64(g>>8-uint32(minVal[1])))
-			newB := clamp(scale[2] * float64(b>>8-uint32(minVal[2])))
+	for x, y := range imgutils.Iterator(img) {
+		r, g, b, a := img.At(x, y).RGBA()
+		// Adjust each channel individually, using `clamp` to keep values within the 0-255 range.
+		newR := clamp(scale[0] * float64(r>>8-uint32(minVal[0])))
+		newG := clamp(scale[1] * float64(g>>8-uint32(minVal[1])))
+		newB := clamp(scale[2] * float64(b>>8-uint32(minVal[2])))
 
-			newImg.Set(x, y, color.RGBA{R: newR, G: newG, B: newB, A: uint8(a / 257)})
-		}
+		newImg.Set(x, y, color.RGBA{R: newR, G: newG, B: newB, A: uint8(a / 257)})
 	}
 
 	return newImg
