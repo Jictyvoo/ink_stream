@@ -3,6 +3,7 @@ package imgutils
 import (
 	"image"
 	"image/color"
+	"slices"
 	"testing"
 
 	"github.com/Jictyvoo/ink_stream/internal/utils"
@@ -117,5 +118,118 @@ func TestHiloHistogram(t *testing.T) {
 				i, expectedMax[i], maxResult[i],
 			)
 		}
+	}
+}
+
+func TestImageHistogram_Channel(t *testing.T) {
+	// Arrange
+	hist := ImageHistogram{
+		data: [3]ChannelHistogram{
+			{1, 2, 3}, {4, 5, 6}, {7, 8, 9},
+		},
+	}
+
+	tests := []struct {
+		name      string
+		index     uint8
+		expected  ChannelHistogram
+		expectNil bool
+	}{
+		{
+			name:     "Valid index 0",
+			index:    0,
+			expected: hist.data[0],
+		},
+		{
+			name:     "Valid index 1",
+			index:    1,
+			expected: hist.data[1],
+		},
+		{
+			name:     "Valid index 2",
+			index:    2,
+			expected: hist.data[2],
+		},
+		{
+			name:      "Index out of range",
+			index:     3,
+			expectNil: true,
+		},
+	}
+
+	// Act & Assert
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := hist.Channel(tt.index)
+
+			if tt.expectNil {
+				if !slices.Equal(result[:], make([]uint32, 256)) {
+					t.Errorf(
+						"Expected empty ChannelHistogram for out-of-range index %d, got %v",
+						tt.index, result,
+					)
+				}
+				return
+			}
+
+			if !slices.Equal(result[:], tt.expected[:]) {
+				t.Errorf(
+					"Expected ChannelHistogram for index %d, got %v",
+					tt.index, result,
+				)
+			}
+		})
+	}
+}
+
+func TestImageHistogram_Set(t *testing.T) {
+	newChannel := ChannelHistogram{1 << 4, 3 << 9, 7 << 1}
+
+	tests := []struct {
+		name     string
+		index    uint8
+		channel  ChannelHistogram
+		expected []ChannelHistogram
+	}{
+		{
+			name:     "Set within range",
+			index:    0,
+			channel:  newChannel,
+			expected: []ChannelHistogram{newChannel, {4, 5, 6}, {7, 8, 9}},
+		},
+		{
+			name:     "Another set within range",
+			index:    1,
+			channel:  newChannel,
+			expected: []ChannelHistogram{{1, 2, 3}, newChannel, {7, 8, 9}},
+		},
+		{
+			name:     "Index out of range",
+			index:    3,
+			channel:  newChannel,
+			expected: []ChannelHistogram{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}, // should be unchanged
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			hist := ImageHistogram{
+				data: [3]ChannelHistogram{
+					{1, 2, 3}, {4, 5, 6}, {7, 8, 9},
+				},
+			}
+			hist.Set(tt.index, tt.channel)
+
+			// Loop through each expected ChannelHistogram and assert equality
+			for i, expectedChannel := range tt.expected {
+				if hist.data[i] != expectedChannel {
+					t.Errorf(
+						"Test %q failed at index %d: expected %v, got %v",
+						tt.name, i,
+						expectedChannel, hist.data[i],
+					)
+				}
+			}
+		})
 	}
 }

@@ -47,6 +47,23 @@ func (histogram ImageHistogram) HiloHistogram(
 	return minVal, maxVal
 }
 
+func (histogram *ImageHistogram) Channel(index uint8) ChannelHistogram {
+	if index > uint8(len(histogram.data)) {
+		return ChannelHistogram{}
+	}
+
+	return histogram.data[index]
+}
+
+func (histogram *ImageHistogram) Set(index uint8, channel ChannelHistogram) bool {
+	if index >= uint8(len(histogram.data)) {
+		return false
+	}
+
+	histogram.data[index] = channel
+	return true
+}
+
 func channelHiLo(
 	channelData ChannelHistogram,
 	minVal, maxVal *uint8,
