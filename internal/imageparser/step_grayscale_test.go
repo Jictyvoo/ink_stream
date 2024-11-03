@@ -4,7 +4,7 @@ import (
 	"image"
 	"testing"
 
-	"github.com/Jictyvoo/ink_stream/internal/utils/imgcompare"
+	"github.com/Jictyvoo/ink_stream/internal/utils/imgutils"
 )
 
 func TestStepGrayScaleImage_PerformExec(t *testing.T) {
@@ -56,7 +56,7 @@ func TestStepGrayScaleImage_PerformExec(t *testing.T) {
 
 			// Validate that the output matches the expected grayscale image
 			result := state.img
-			if !imgcompare.IsImageEqual(result, tCase.expectedImg) {
+			if !imgutils.IsImageEqual(result, tCase.expectedImg) {
 				t.Errorf(
 					"expected: %#v, actual: %#v", tCase.expectedImg, result,
 				)

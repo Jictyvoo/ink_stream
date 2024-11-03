@@ -13,3 +13,5 @@ func CreateDirIfNotExist(dir string) error {
 
 	return nil
 }
+
+type MinMaxGeneric[T any] struct{ Min, Max T }

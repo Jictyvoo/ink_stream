@@ -1,4 +1,4 @@
-package imgcompare
+package imgutils
 
 import (
 	_ "embed"
