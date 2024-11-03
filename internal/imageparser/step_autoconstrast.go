@@ -4,6 +4,8 @@ import (
 	"image"
 	"image/color"
 	"math"
+
+	"github.com/Jictyvoo/ink_stream/internal/utils/imgutils"
 )
 
 type StepAutoContrastImage struct{}
@@ -20,16 +22,18 @@ func (sgsi StepAutoContrastImage) GammaCorrect(img image.Image, gamma float64) i
 	// GammaCorrection applies gamma correction on a given value
 	correction := func(a uint8) uint8 {
 		return uint8(
-			math.Min(
-				maxPixelValue,
-				math.Max(0, maxPixelValue*math.Pow(float64(a)/maxPixelValue, gamma)),
+			min(
+				imgutils.MaxPixelValue,
+				max(0, imgutils.MaxPixelValue*math.Pow(
+					float64(a)/imgutils.MaxPixelValue, gamma,
+				)),
 			),
 		)
 	}
 
 	// GenerateLUT as a lookup table
-	var lut [maxPixelValue + 1]uint8
-	for i := 0; i < maxPixelValue+1; i++ {
+	var lut [imgutils.MaxPixelValue + 1]uint8
+	for i := 0; i < imgutils.MaxPixelValue+1; i++ {
 		lut[i] = correction(uint8(i))
 	}
 	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
@@ -54,34 +58,37 @@ func (sgsi StepAutoContrastImage) AutoContrast(img image.Image) image.Image {
 	newImg := image.NewRGBA(bounds)
 
 	var (
-		minVal, maxVal = [3]uint8{}, [3]uint8{maxPixelValue, maxPixelValue, maxPixelValue}
-		stopChannels   [3]struct{ min, max bool }
-		histogram      = calculateHistogram(img)
+		minVal, maxVal = [3]uint8{}, [3]uint8{
+			imgutils.MaxPixelValue,
+			imgutils.MaxPixelValue,
+			imgutils.MaxPixelValue,
+		}
+		histogram = imgutils.CalculateHistogram(img)
 	)
 
 	// Determine minVal and maxVal values in the image
-	minVal, maxVal = histogram.hiloHistogram(minVal, maxVal, stopChannels)
+	minVal, maxVal = histogram.HiloHistogram(minVal, maxVal)
 
 	// Avoid division by zero
 	for i := range len(minVal) {
 		if maxVal[i] == minVal[i] {
-			maxVal[i] = maxPixelValue
+			maxVal[i] = imgutils.MaxPixelValue
 			maxVal[i] = 0
 		}
 	}
 
 	// Apply autocontrast transformation
 	scale := [3]float64{
-		maxPixelValue / float64(maxVal[0]-minVal[0]),
-		maxPixelValue / float64(maxVal[1]-minVal[1]),
-		maxPixelValue / float64(maxVal[2]-minVal[2]),
+		imgutils.MaxPixelValue / float64(maxVal[0]-minVal[0]),
+		imgutils.MaxPixelValue / float64(maxVal[1]-minVal[1]),
+		imgutils.MaxPixelValue / float64(maxVal[2]-minVal[2]),
 	}
 
 	clamp := func(value float64) uint8 {
 		if value < 0 {
 			return 0
-		} else if value > 255 {
-			return 255
+		} else if value > imgutils.MaxPixelValue {
+			return imgutils.MaxPixelValue
 		}
 		return uint8(value)
 	}

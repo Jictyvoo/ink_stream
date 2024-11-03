@@ -1,9 +1,11 @@
-package imageparser
+package imgutils
 
 import (
 	"image"
 	"image/color"
 	"testing"
+
+	"github.com/Jictyvoo/ink_stream/internal/utils"
 )
 
 // Helper function to create a solid color image for testing.
@@ -23,7 +25,7 @@ func TestCalculateHistogram(t *testing.T) {
 	img := createSolidColorImage(2, 2, color.RGBA{R: 255, G: 0, B: 0, A: 255})
 
 	// Calculate histogram
-	histogram := calculateHistogram(img)
+	histogram := CalculateHistogram(img)
 
 	// Verify the red channel has counts at index 255
 	if histogram.data[0][255] != 4 {
@@ -31,7 +33,7 @@ func TestCalculateHistogram(t *testing.T) {
 	}
 
 	// Verify the green and blue channels are all zero
-	for i := 0; i <= maxPixelValue; i++ {
+	for i := 0; i <= MaxPixelValue; i++ {
 		if i == 0 {
 			var zeroes struct{ green, blue uint32 }
 			zeroes.green, zeroes.blue = histogram.data[1][i], histogram.data[2][i]
@@ -62,13 +64,12 @@ func TestChannelHiLo(t *testing.T) {
 	var (
 		minVal uint8 = 0
 		maxVal uint8 = 255
-		stop   struct{ min, max bool }
+		stop   utils.MinMaxGeneric[bool]
 	)
 
 	// Test finding the min and max values in the histogram
-	imgHist := ImageHistogram{}
-	for range maxPixelValue {
-		imgHist.channelHiLo(histogram, &minVal, &maxVal, &stop)
+	for range MaxPixelValue {
+		channelHiLo(histogram, &minVal, &maxVal, &stop)
 	}
 
 	if minVal != 10 {
@@ -91,13 +92,12 @@ func TestHiloHistogram(t *testing.T) {
 
 	// Define initial min and max values and stop channels
 	var (
-		minVal       [3]uint8
-		maxVal       = [3]uint8{255, 255, 255}
-		stopChannels [3]struct{ min, max bool }
+		minVal [3]uint8
+		maxVal = [3]uint8{255, 255, 255}
 	)
 
 	// Calculate hilo histogram
-	minResult, maxResult := histogram.hiloHistogram(minVal, maxVal, stopChannels)
+	minResult, maxResult := histogram.HiloHistogram(minVal, maxVal)
 
 	// Expected min and max values based on histogram data
 	expectedMin := [3]uint8{64, 10, 50}
