@@ -1,6 +1,9 @@
 package imgutils
 
-import "image"
+import (
+	"image"
+	"iter"
+)
 
 // IsImageEqual returns true if two images a and b are equal.
 func IsImageEqual(a, b image.Image) bool {
@@ -16,4 +19,17 @@ func IsImageEqual(a, b image.Image) bool {
 		}
 	}
 	return true
+}
+
+func Iterator(input image.Image) iter.Seq2[int, int] {
+	return func(yield func(int, int) bool) {
+		bounds := input.Bounds()
+		for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
+			for x := bounds.Min.X; x < bounds.Max.X; x++ {
+				if !yield(x, y) {
+					return
+				}
+			}
+		}
+	}
 }

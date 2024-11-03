@@ -107,3 +107,49 @@ func TestIsImageEqual(t *testing.T) {
 		})
 	}
 }
+
+func TestIterator_CompleteIteration(t *testing.T) {
+	const width, height = 3, 3
+	img := image.NewGray(image.Rect(0, 0, width, height))
+
+	// Create a map to keep track of visited coordinates
+	visited := make(map[uint16]bool)
+	visitIndex := func(x, y int) uint16 {
+		return (uint16(x) << 8) | uint16(y)
+	}
+
+	// Run the iterator
+	Iterator(img)(func(x, y int) bool {
+		visited[visitIndex(x, y)] = true
+		return true
+	})
+
+	// Check if all coordinates within bounds were visited
+	for y := 0; y < height; y++ {
+		for x := 0; x < width; x++ {
+			if !visited[visitIndex(x, y)] {
+				t.Errorf("Coordinate (%d, %d) was not visited", x, y)
+			}
+		}
+	}
+}
+
+func TestIterator_EarlyExit(t *testing.T) {
+	const width, height = 3, 3
+	img := image.NewGray(image.Rect(0, 0, width, height))
+
+	// Keep track of number of visited coordinates
+	count := 0
+	expectedVisits := 1 // We expect only one visit since we return false immediately
+
+	// Run the iterator with early exit
+	Iterator(img)(func(x, y int) bool {
+		count++
+		return false // Exit after first coordinate
+	})
+
+	// Check that only one coordinate was visited
+	if count != expectedVisits {
+		t.Errorf("Expected %d coordinates to be visited, but got %d", expectedVisits, count)
+	}
+}

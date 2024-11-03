@@ -3,6 +3,8 @@ package imageparser
 import (
 	"image"
 	"image/color"
+
+	"github.com/Jictyvoo/ink_stream/internal/utils/imgutils"
 )
 
 type StepGrayScaleImage struct{}
@@ -13,10 +15,8 @@ func NewStepGrayScale() StepGrayScaleImage {
 
 func (sgsi StepGrayScaleImage) PerformExec(state *pipeState, _ processOptions) (err error) {
 	grayImg := image.NewGray(state.img.Bounds())
-	for y := 0; y < state.img.Bounds().Dy(); y++ {
-		for x := 0; x < state.img.Bounds().Dx(); x++ {
-			grayImg.Set(x, y, color.GrayModel.Convert(state.img.At(x, y)))
-		}
+	for x, y := range imgutils.Iterator(state.img) {
+		grayImg.Set(x, y, color.GrayModel.Convert(state.img.At(x, y)))
 	}
 
 	state.img = grayImg
