@@ -7,6 +7,10 @@ import (
 
 type StepGrayScaleImage struct{}
 
+func NewStepGrayScale() StepGrayScaleImage {
+	return StepGrayScaleImage{}
+}
+
 func (sgsi StepGrayScaleImage) PerformExec(state *pipeState, _ processOptions) (err error) {
 	grayImg := image.NewGray(state.img.Bounds())
 	for y := 0; y < state.img.Bounds().Dy(); y++ {

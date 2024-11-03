@@ -21,6 +21,10 @@ type (
 	}
 )
 
+func NewImagePipeline(steps []PipeStep) ImagePipeline {
+	return ImagePipeline{steps: steps}
+}
+
 func (imgPipe ImagePipeline) Process(img image.Image) (resultImg image.Image, err error) {
 	imgPipe.state.img = img
 	for _, step := range imgPipe.steps {
