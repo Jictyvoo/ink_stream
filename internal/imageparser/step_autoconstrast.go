@@ -3,52 +3,19 @@ package imageparser
 import (
 	"image"
 	"image/color"
-	"math"
 
 	"github.com/Jictyvoo/ink_stream/internal/utils/imgutils"
 )
 
-type StepAutoContrastImage struct{}
-
-func NewStepAutoContrast() StepAutoContrastImage {
-	return StepAutoContrastImage{}
+type StepAutoContrastImage struct {
+	cutoff       [2]float64
+	gammaCorrect StepGammaCorrectionImage
 }
 
-// GammaCorrect applies gamma correction to an image.
-func (sgsi StepAutoContrastImage) GammaCorrect(img image.Image, gamma float64) image.Image {
-	bounds := img.Bounds()
-	newImg := image.NewRGBA(bounds)
-
-	// GammaCorrection applies gamma correction on a given value
-	correction := func(a uint8) uint8 {
-		return uint8(
-			min(
-				imgutils.MaxPixelValue,
-				max(0, imgutils.MaxPixelValue*math.Pow(
-					float64(a)/imgutils.MaxPixelValue, gamma,
-				)),
-			),
-		)
+func NewStepAutoContrast(cutLow, cutHigh float64) StepAutoContrastImage {
+	return StepAutoContrastImage{
+		cutoff: [2]float64{cutLow, cutHigh},
 	}
-
-	// GenerateLUT as a lookup table
-	var lut [imgutils.MaxPixelValue + 1]uint8
-	for i := 0; i < imgutils.MaxPixelValue+1; i++ {
-		lut[i] = correction(uint8(i))
-	}
-
-	for x, y := range imgutils.Iterator(img) {
-		r, g, b, a := img.At(x, y).RGBA()
-
-		// Applying the LUT to each channel, assuming 8-bit image (values scaled down from 16-bit)
-		newR := lut[r>>8]
-		newG := lut[g>>8]
-		newB := lut[b>>8]
-
-		newImg.Set(x, y, color.RGBA{R: newR, G: newG, B: newB, A: uint8(a >> 8)})
-	}
-
-	return newImg
 }
 
 // AutoContrast applies autocontrast to an image.
@@ -65,18 +32,25 @@ func (sgsi StepAutoContrastImage) AutoContrast(img image.Image) image.Image {
 		histogram = imgutils.CalculateHistogram(img)
 	)
 
+	// Apply cutoff to histogram
+	if sgsi.cutoff != [2]float64{} {
+		for i := range uint8(3) {
+			newChannel := imgutils.ApplyCutoff(histogram.Channel(i), sgsi.cutoff[0], sgsi.cutoff[1])
+			histogram.Set(i, newChannel)
+		}
+	}
 	// Determine minVal and maxVal values in the image
 	minVal, maxVal = histogram.HiloHistogram(minVal, maxVal)
 
 	// Avoid division by zero
-	for i := range len(minVal) {
+	for i := range uint8(3) {
 		if maxVal[i] == minVal[i] {
 			maxVal[i] = imgutils.MaxPixelValue
 			maxVal[i] = 0
 		}
 	}
 
-	// Apply autocontrast transformation
+	// Apply auto-contrast transformation
 	scale := [3]float64{
 		imgutils.MaxPixelValue / float64(maxVal[0]-minVal[0]),
 		imgutils.MaxPixelValue / float64(maxVal[1]-minVal[1]),
@@ -91,14 +65,32 @@ func (sgsi StepAutoContrastImage) AutoContrast(img image.Image) image.Image {
 		}
 		return uint8(value)
 	}
+
+	var lookupTable [3]imgutils.ChannelHistogram
+	for index := range 3 {
+		// Offset to adjust each channel based on minVal and scale
+		offset := -float64(minVal[index]) * scale[index]
+
+		// Fill the lookup table for this channel
+		for pixelIndex := 0; pixelIndex <= imgutils.MaxPixelValue; pixelIndex++ {
+			// Calculate the adjusted pixel value using the scale and offset
+			adjustedValue := float64(pixelIndex)*scale[index] + offset
+			lookupTable[index][pixelIndex] = uint32(clamp(adjustedValue))
+		}
+	}
 	for x, y := range imgutils.Iterator(img) {
 		r, g, b, a := img.At(x, y).RGBA()
 		// Adjust each channel individually, using `clamp` to keep values within the 0-255 range.
-		newR := clamp(scale[0] * float64(r>>8-uint32(minVal[0])))
-		newG := clamp(scale[1] * float64(g>>8-uint32(minVal[1])))
-		newB := clamp(scale[2] * float64(b>>8-uint32(minVal[2])))
+		var (
+			rgb    = [3]uint8{uint8(r >> 8), uint8(g >> 8), uint8(b >> 8)}
+			newRGB [3]uint8
+		)
+		for index := range 3 {
+			// Map the original pixel value to the new value using the lookup table
+			newRGB[index] = uint8(lookupTable[index][rgb[index]])
+		}
 
-		newImg.Set(x, y, color.RGBA{R: newR, G: newG, B: newB, A: uint8(a / 257)})
+		newImg.Set(x, y, color.RGBA{R: newRGB[0], G: newRGB[1], B: newRGB[2], A: uint8(a >> 8)})
 	}
 
 	return newImg
@@ -115,6 +107,10 @@ func (sgsi StepAutoContrastImage) PerformExec(state *pipeState, opts processOpti
 		state.img = sgsi.AutoContrast(state.img)
 		return
 	}
-	state.img = sgsi.AutoContrast(sgsi.GammaCorrect(state.img, opts.gamma))
+
+	if err = sgsi.gammaCorrect.PerformExec(state, opts); err != nil {
+		return
+	}
+	state.img = sgsi.AutoContrast(state.img)
 	return
 }
