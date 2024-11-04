@@ -48,7 +48,7 @@ func (histogram ImageHistogram) HiloHistogram(
 }
 
 func (histogram *ImageHistogram) Channel(index uint8) ChannelHistogram {
-	if index > uint8(len(histogram.data)) {
+	if index >= uint8(len(histogram.data)) {
 		return ChannelHistogram{}
 	}
 
