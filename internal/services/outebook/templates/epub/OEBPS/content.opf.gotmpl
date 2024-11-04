@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<package version="3.0" unique-identifier="BookID" xmlns="http://www.idpf.org/2007/opf">
+  <metadata xmlns:opf="http://www.idpf.org/2007/opf" xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <dc:title>{{.Metadata.Title}}</dc:title>
+    <dc:language>{{.Metadata.Language}}</dc:language>
+    <dc:identifier id="BookID">urn:uuid:{{.Metadata.UUID}}</dc:identifier>
+    <dc:contributor id="contributor">{{.Metadata.Contributor}}</dc:contributor>
+    <dc:creator>{{.Metadata.Creator}}</dc:creator>
+    <meta property="dcterms:modified">{{.Metadata.ModifiedDate}}</meta>
+    <meta name="cover" content="cover"/>
+    <meta name="fixed-layout" content="true"/>
+    <meta name="original-resolution" content="{{.Metadata.Resolution}}"/>
+    <meta name="book-type" content="comic"/>
+    <meta name="primary-writing-mode" content="{{.Metadata.WritingMode}}"/>
+  </metadata>
+
+  <manifest>
+    {{range .ManifestItems}}
+    <item id="{{.ID}}" href="{{.Href}}" media-type="{{.MediaType}}" {{if .Properties}}properties="{{.Properties}}"{{end}}/>
+    {{end}}
+  </manifest>
+
+  <spine page-progression-direction="{{.PageDirection}}" toc="ncx">
+    {{range .SpineItems}}
+    <itemref idref="{{.IDRef}}" linear="{{.Linear}}" properties="{{.Properties}}"/>
+    {{end}}
+  </spine>
+</package>

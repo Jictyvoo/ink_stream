@@ -1,6 +1,7 @@
 package imageparser
 
 import (
+	"bytes"
 	"image"
 	"image/color"
 	"image/draw"
