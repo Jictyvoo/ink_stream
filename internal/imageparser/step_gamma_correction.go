@@ -1,7 +1,6 @@
 package imageparser
 
 import (
-	"image"
 	"image/color"
 	"math"
 
@@ -18,7 +17,7 @@ func (step StepGammaCorrectionImage) PerformExec(
 	state *pipeState, opts processOptions,
 ) (err error) {
 	bounds := state.img.Bounds()
-	newImg := image.NewRGBA(bounds)
+	newImg := createDrawImage(state.img, bounds)
 
 	// GammaCorrection applies gamma correction on a given value
 	correction := func(a uint8) uint8 {

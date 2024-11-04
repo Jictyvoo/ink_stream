@@ -21,7 +21,7 @@ func NewStepAutoContrast(cutLow, cutHigh float64) StepAutoContrastImage {
 // AutoContrast applies autocontrast to an image.
 func (step StepAutoContrastImage) AutoContrast(img image.Image) image.Image {
 	bounds := img.Bounds()
-	newImg := image.NewRGBA(bounds)
+	newImg := createDrawImage(img, bounds)
 
 	var (
 		minVal, maxVal = [3]uint8{}, [3]uint8{
