@@ -22,15 +22,7 @@ func NewStepAutoContrast(cutLow, cutHigh float64) StepAutoContrastImage {
 func (step StepAutoContrastImage) AutoContrast(img image.Image) image.Image {
 	bounds := img.Bounds()
 	newImg := createDrawImage(img, bounds)
-
-	var (
-		minVal, maxVal = [3]uint8{}, [3]uint8{
-			imgutils.MaxPixelValue,
-			imgutils.MaxPixelValue,
-			imgutils.MaxPixelValue,
-		}
-		histogram = imgutils.CalculateHistogram(img)
-	)
+	histogram := imgutils.CalculateHistogram(img)
 
 	// Apply cutoff to histogram
 	if step.cutoff != [2]float64{} {
@@ -39,45 +31,44 @@ func (step StepAutoContrastImage) AutoContrast(img image.Image) image.Image {
 			histogram.Set(i, newChannel)
 		}
 	}
-	// Determine minVal and maxVal values in the image
-	minVal, maxVal = histogram.HiloHistogram(minVal, maxVal)
 
-	// Avoid division by zero
+	var (
+		// Determine minVal and maxVal values in the image
+		minVal, maxVal = histogram.HiloHistogram()
+		scale          [3]float64
+		clamp          = func(value float64) uint8 {
+			if value < 0 {
+				return 0
+			} else if value > imgutils.MaxPixelValue {
+				return imgutils.MaxPixelValue
+			}
+			return uint8(value)
+		}
+		lookupTable [3]imgutils.ChannelHistogram
+	)
+
 	for i := range uint8(3) {
-		if maxVal[i] == minVal[i] {
-			maxVal[i] = imgutils.MaxPixelValue
-			maxVal[i] = 0
+		scale[i] = 1
+
+		// Avoid division by zero
+		if maxVal[i] != minVal[i] {
+			scale[i] = imgutils.MaxPixelValue / float64(maxVal[i]-minVal[i])
+		}
+
+		// Apply auto-contrast transformation
+		{
+			// Offset to adjust each channel based on minVal and scale
+			offset := -float64(minVal[i]) * scale[i]
+
+			// Fill the lookup table for this channel
+			for pixelIndex := 0; pixelIndex <= imgutils.MaxPixelValue; pixelIndex++ {
+				// Calculate the adjusted pixel value using the scale and offset
+				adjustedValue := float64(pixelIndex)*scale[i] + offset
+				lookupTable[i][pixelIndex] = uint32(clamp(adjustedValue))
+			}
 		}
 	}
 
-	// Apply auto-contrast transformation
-	scale := [3]float64{
-		imgutils.MaxPixelValue / float64(maxVal[0]-minVal[0]),
-		imgutils.MaxPixelValue / float64(maxVal[1]-minVal[1]),
-		imgutils.MaxPixelValue / float64(maxVal[2]-minVal[2]),
-	}
-
-	clamp := func(value float64) uint8 {
-		if value < 0 {
-			return 0
-		} else if value > imgutils.MaxPixelValue {
-			return imgutils.MaxPixelValue
-		}
-		return uint8(value)
-	}
-
-	var lookupTable [3]imgutils.ChannelHistogram
-	for index := range 3 {
-		// Offset to adjust each channel based on minVal and scale
-		offset := -float64(minVal[index]) * scale[index]
-
-		// Fill the lookup table for this channel
-		for pixelIndex := 0; pixelIndex <= imgutils.MaxPixelValue; pixelIndex++ {
-			// Calculate the adjusted pixel value using the scale and offset
-			adjustedValue := float64(pixelIndex)*scale[index] + offset
-			lookupTable[index][pixelIndex] = uint32(clamp(adjustedValue))
-		}
-	}
 	for x, y := range imgutils.Iterator(img) {
 		r, g, b, a := img.At(x, y).RGBA()
 		// Adjust each channel individually, using `clamp` to keep values within the 0-255 range.

@@ -29,9 +29,8 @@ func CalculateHistogram(img image.Image) ImageHistogram {
 	return ImageHistogram{data: histogram}
 }
 
-func (histogram ImageHistogram) HiloHistogram(
-	minVal [3]uint8, maxVal [3]uint8,
-) ([3]uint8, [3]uint8) {
+func (histogram ImageHistogram) HiloHistogram() (minVal [3]uint8, maxVal [3]uint8) {
+	maxVal = [3]uint8{MaxPixelValue, MaxPixelValue, MaxPixelValue}
 	var stopChannels [3]utils.MinMaxGeneric[bool]
 	for (!stopChannels[0].Min || !stopChannels[1].Min || !stopChannels[2].Min) ||
 		(!stopChannels[0].Max || !stopChannels[1].Max || !stopChannels[2].Max) {
