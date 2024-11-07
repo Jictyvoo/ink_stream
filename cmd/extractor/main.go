@@ -11,6 +11,7 @@ import (
 	"sync"
 
 	"github.com/Jictyvoo/ink_stream/internal/services/extractor"
+	"github.com/Jictyvoo/ink_stream/internal/utils"
 )
 
 func main() {
@@ -36,12 +37,6 @@ func main() {
 		log.Fatalf("Failed to create output folder: %v", err)
 	}
 
-	// Find all .cbz files in the input folder
-	files, err := os.ReadDir(inputFolder)
-	if err != nil {
-		log.Fatalf("Failed to read input folder: %v", err)
-	}
-
 	var (
 		wg          sync.WaitGroup
 		sendChannel = make(chan extractor.FileInfo)
@@ -59,12 +54,12 @@ func main() {
 		}()
 	}
 
+	filenameList := utils.ListAllFiles(inputFolder)
 	allowedFormats := []string{".cbz", ".cbr", ".zip", ".rar"}
-	for _, file := range files {
-		fileExt := filepath.Ext(file.Name())
+	for _, fileAbsolutePath := range filenameList {
+		fileExt := filepath.Ext(fileAbsolutePath)
 		if slices.Contains(allowedFormats, fileExt) {
-			fileAbsolutePath := filepath.Join(inputFolder, file.Name())
-			baseName := strings.TrimSuffix(file.Name(), fileExt)
+			baseName := strings.TrimSuffix(fileAbsolutePath, fileExt)
 			sendChannel <- extractor.FileInfo{
 				BaseName:     baseName,
 				CompleteName: fileAbsolutePath,
@@ -74,5 +69,5 @@ func main() {
 	close(sendChannel)
 
 	wg.Wait()
-	log.Printf("Sent %d files", len(files))
+	log.Printf("Sent %d files", len(filenameList))
 }
