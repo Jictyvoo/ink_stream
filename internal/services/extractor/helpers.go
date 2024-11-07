@@ -2,6 +2,7 @@ package extractor
 
 import (
 	"context"
+	"errors"
 	"io"
 	"io/fs"
 	"strings"
@@ -17,21 +18,12 @@ func checkFileFormat(filename string, file io.Reader) (io.Reader, archiver.Extra
 		return nil, nil, err
 	}
 
-	// want to extract something?
+	// It must be an extractor
 	if ex, ok := format.(archiver.Extractor); ok {
 		return fileReader, ex, nil
 	}
 
-	// or maybe it's compressed and you want to decompress it?
-	if decom, ok := format.(archiver.Decompressor); ok {
-		var rc io.ReadCloser
-		if rc, err = decom.OpenReader(fileReader); err != nil {
-			return nil, nil, err
-		}
-		defer rc.Close()
-		return checkFileFormat(filename, rc)
-	}
-	return nil, nil, nil
+	return nil, nil, errors.New("unsupported file format")
 }
 
 func getAllNames(filename string) (result []string) {
