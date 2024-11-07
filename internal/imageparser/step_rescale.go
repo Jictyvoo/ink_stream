@@ -8,6 +8,8 @@ import (
 	"github.com/Jictyvoo/ink_stream/internal/deviceprof"
 )
 
+var _ PipeStep = (*StepRescaleImage)(nil)
+
 type StepRescaleImage struct {
 	resolution deviceprof.Resolution
 	isPixelArt bool

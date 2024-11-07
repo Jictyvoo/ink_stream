@@ -7,6 +7,8 @@ import (
 	"github.com/Jictyvoo/ink_stream/internal/utils/imgutils"
 )
 
+var _ PipeStep = (*StepAutoContrastImage)(nil)
+
 type StepAutoContrastImage struct {
 	cutoff       [2]float64
 	gammaCorrect StepGammaCorrectionImage

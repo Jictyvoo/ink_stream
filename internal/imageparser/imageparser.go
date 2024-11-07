@@ -6,6 +6,10 @@ import (
 	"image/draw"
 )
 
+type UnitStep interface {
+	PixelStep(imgColor color.Color) color.Color
+}
+
 func createDrawImage(img image.Image, bounds image.Rectangle) draw.Image {
 	switch img.ColorModel() {
 	case color.GrayModel, color.Gray16Model:
