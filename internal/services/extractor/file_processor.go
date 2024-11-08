@@ -1,13 +1,14 @@
 package extractor
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"log"
 	"os"
 	"path/filepath"
-	"time"
+	"strings"
+
+	"github.com/Jictyvoo/ink_stream/internal/services/extractor/cbxr"
 )
 
 type (
@@ -36,35 +37,44 @@ func (fp *FileProcessorWorker) Run() {
 
 func (fp *FileProcessorWorker) processFile(file FileInfo) error {
 	extractDir := filepath.Join(fp.OutputFolder, file.BaseName)
-	cbzFile := file.CompleteName
 
 	// Create the directory for the extracted files
 	if err := fp.createOutDir(extractDir, coverDirSuffix); err != nil {
 		return err
 	}
 
-	filePointer, err := os.OpenFile(cbzFile, os.O_RDWR|os.O_CREATE, 0755)
+	filePointer, err := os.OpenFile(file.CompleteName, os.O_RDONLY, 0755)
 	if err != nil {
-		log.Printf("Failed to open %s: %v", cbzFile, err)
+		log.Printf("Failed to open %s: %v", file.CompleteName, err)
 		return err
 	}
 
-	fileReader, format, err := checkFileFormat(cbzFile, filePointer)
+	var (
+		extractor  cbxr.Extractor
+		fileWriter = WriterHandle{
+			outputDirectory:    extractDir,
+			coverDirectoryName: filepath.Join(extractDir, coverDirSuffix),
+			folderCounter:      &folderInfoCounter{},
+		}
+	)
+	extractor, err = cbxr.NewMultiZipRarExtractor(file.CompleteName, filePointer)
 	if err != nil {
+		log.Printf("Failed to create extractor: %v", err)
 		return err
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 9000*time.Second)
-	defer cancel()
+	for fileName, fileResult := range extractor.FileSeq() {
+		if fileResult.Error != nil {
+			return fileResult.Error
+		}
 
-	fileWriter := WriterHandle{
-		outputDirectory:    extractDir,
-		coverDirectoryName: filepath.Join(extractDir, coverDirSuffix),
-		folderCounter:      &folderInfoCounter{},
-	}
-	if err = format.Extract(ctx, fileReader, getAllNames(cbzFile), fileWriter.handler); err != nil {
-		log.Printf("Failed to extract %s: %v", cbzFile, err)
-		return err
+		fileName = cbxr.FileName(filepath.Base(string(fileName)))
+		if strings.HasPrefix(strings.ToLower(string(fileName)), "cred") && len(fileName) >= len("000.jpeg") {
+			continue
+		}
+		if err = fileWriter.handler(string(fileName), fileResult.Data); err != nil {
+			return err
+		}
 	}
 
 	if fileWriter.folderCounter.onRoot > 0 && fileWriter.folderCounter.onSubDir > 0 {
@@ -79,19 +89,4 @@ func (fp *FileProcessorWorker) processFile(file FileInfo) error {
 		)
 	}
 	return err
-}
-
-func (fp *FileProcessorWorker) createOutDir(extractDir string, suffix string) error {
-	if err := os.MkdirAll(extractDir, 0755); err != nil {
-		log.Printf("Failed to create directory for extraction: %v", err)
-		return err
-	}
-
-	// Create a covers output directory
-	if err := os.MkdirAll(filepath.Join(extractDir, suffix), 0755); err != nil {
-		log.Printf("Failed to create directory for extraction: %v", err)
-		return err
-	}
-
-	return nil
 }

@@ -1,14 +1,10 @@
 package extractor
 
 import (
-	"context"
-	"io"
 	"log"
 	"os"
 	"path/filepath"
 	"strings"
-
-	"github.com/mholt/archiver/v4"
 
 	"github.com/Jictyvoo/ink_stream/internal/utils"
 )
@@ -28,20 +24,21 @@ func (wh WriterHandle) defaultDir() string {
 	return filepath.Join(wh.outputDirectory, defaultContentDir)
 }
 
-func (wh WriterHandle) subFolderName(f archiver.File) (directoryName string) {
-	directoryName = filepath.Dir(f.NameInArchive)
+func (wh WriterHandle) subFolderName(absFilename string) (directoryName string) {
+	directoryName = filepath.Dir(absFilename)
 	if index := strings.LastIndex(directoryName, "(en)"); index >= 0 {
 		directoryName = directoryName[0:index]
 	}
 	directoryName = strings.ReplaceAll(strings.TrimSpace(directoryName), " ", "-")
 
+	filename := filepath.Base(absFilename)
 	folderDir := wh.defaultDir()
-	if directoryName != f.Name() && directoryName != "." {
+	if directoryName != filename && directoryName != "." {
 		folderDir = filepath.Join(wh.outputDirectory, directoryName)
 		wh.folderCounter.onSubDir++
 	} else {
 		directoryName = defaultContentDir
-		switch fileIsCover(filepath.Base(f.NameInArchive)) {
+		switch fileIsCover(filename) {
 		case true:
 			wh.folderCounter.cover++
 		case false:
@@ -57,29 +54,13 @@ func (wh WriterHandle) subFolderName(f archiver.File) (directoryName string) {
 	return
 }
 
-func (wh WriterHandle) handler(_ context.Context, f archiver.File) error {
-	reader, err := f.Open()
-	if err != nil {
-		return err
-	}
-
-	filename := f.Name()
-	if f.IsDir() || (strings.HasPrefix(strings.ToLower(filename), "cred") && len(filename) >= len("000.jpeg")) {
-		return nil
-	}
-
+func (wh WriterHandle) handler(filename string, data []byte) error {
 	destinationFolder := wh.outputDirectory
 	if fileIsCover(filename) {
 		destinationFolder = wh.coverDirectoryName
 		wh.folderCounter.cover++
-	} else if subFolderName := wh.subFolderName(f); subFolderName != "" {
+	} else if subFolderName := wh.subFolderName(filename); subFolderName != "" {
 		destinationFolder = filepath.Join(wh.outputDirectory, subFolderName)
-	}
-
-	defer reader.Close()
-	data, err := io.ReadAll(reader)
-	if err != nil {
-		return err
 	}
 
 	writeFile, err := os.Create(destinationFolder + "/" + strings.TrimLeft(filename, "."))
