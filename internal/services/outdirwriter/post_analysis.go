@@ -1,4 +1,4 @@
-package extractor
+package outdirwriter
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 	"slices"
 )
 
-func moveFirstFileToCoverFolder(directory string) error {
+func MoveFirstFileToCoverFolder(directory string) error {
 	var files []string
 
 	// Walk through all files in the directory and its subdirectories
@@ -34,7 +34,7 @@ func moveFirstFileToCoverFolder(directory string) error {
 	}
 
 	// Define the _0Cover folder path
-	coverFolder := filepath.Join(directory, coverDirSuffix)
+	coverFolder := filepath.Join(directory, CoverDirSuffix)
 
 	// Check if _0Cover folder is empty
 	coverFiles, err := os.ReadDir(coverFolder)

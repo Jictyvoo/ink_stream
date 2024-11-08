@@ -1,4 +1,4 @@
-package extractor
+package outdirwriter
 
 import (
 	"log"
@@ -7,13 +7,13 @@ import (
 	"strings"
 )
 
-const coverDirSuffix = "0000_Cover"
+const CoverDirSuffix = "0000_Cover"
 
 func fileIsCover(filename string) bool {
 	return strings.Contains(strings.ToLower(filename), ".cover")
 }
 
-func (fp *FileProcessorWorker) createOutDir(extractDir string, suffix string) error {
+func CreateOutDir(extractDir string, suffix string) error {
 	if err := os.MkdirAll(extractDir, 0755); err != nil {
 		log.Printf("Failed to create directory for extraction: %v", err)
 		return err

@@ -1,14 +1,13 @@
 package extractor
 
 import (
-	"errors"
-	"fmt"
 	"log"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/Jictyvoo/ink_stream/internal/services/extractor/cbxr"
+	"github.com/Jictyvoo/ink_stream/internal/services/outdirwriter"
 )
 
 type (
@@ -29,7 +28,7 @@ func (fp *FileProcessorWorker) Run() {
 		}
 
 		// After finishing file processing, start the post analysis
-		if err := moveFirstFileToCoverFolder(filepath.Join(fp.OutputFolder, filename.BaseName)); err != nil {
+		if err := outdirwriter.MoveFirstFileToCoverFolder(filepath.Join(fp.OutputFolder, filename.BaseName)); err != nil {
 			log.Fatal(err)
 		}
 	}
@@ -39,7 +38,7 @@ func (fp *FileProcessorWorker) processFile(file FileInfo) error {
 	extractDir := filepath.Join(fp.OutputFolder, file.BaseName)
 
 	// Create the directory for the extracted files
-	if err := fp.createOutDir(extractDir, coverDirSuffix); err != nil {
+	if err := outdirwriter.CreateOutDir(extractDir, outdirwriter.CoverDirSuffix); err != nil {
 		return err
 	}
 
@@ -51,11 +50,7 @@ func (fp *FileProcessorWorker) processFile(file FileInfo) error {
 
 	var (
 		extractor  cbxr.Extractor
-		fileWriter = WriterHandle{
-			outputDirectory:    extractDir,
-			coverDirectoryName: filepath.Join(extractDir, coverDirSuffix),
-			folderCounter:      &folderInfoCounter{},
-		}
+		fileWriter = outdirwriter.NewWriterHandle(extractDir)
 	)
 
 	if extractor, err = fp.newExtractor(file, filePointer); err != nil {
@@ -72,22 +67,12 @@ func (fp *FileProcessorWorker) processFile(file FileInfo) error {
 		if strings.HasPrefix(strings.ToLower(string(fileName)), "cred") && len(fileName) >= len("000.jpeg") {
 			continue
 		}
-		if err = fileWriter.handler(string(fileName), fileResult.Data); err != nil {
+		if err = fileWriter.Handler(string(fileName), fileResult.Data); err != nil {
 			return err
 		}
 	}
 
-	if fileWriter.folderCounter.onRoot > 0 && fileWriter.folderCounter.onSubDir > 0 {
-		if fileWriter.folderCounter.cover > 0 {
-			err = fmt.Errorf("only one of onRoot and onSubDir may be specified")
-			return err
-		}
-		// Move all content-main to work as _0Cover
-		err = errors.Join(
-			os.Remove(fileWriter.coverDirectoryName),
-			os.Rename(fileWriter.defaultDir(), fileWriter.coverDirectoryName),
-		)
-	}
+	err = fileWriter.OnFinish()
 	return err
 }
 
