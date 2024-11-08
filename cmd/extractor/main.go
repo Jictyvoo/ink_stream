@@ -15,8 +15,12 @@ import (
 )
 
 func main() {
-	var inputFolder string
+	var (
+		inputFolder  string
+		outputFolder string
+	)
 	flag.StringVar(&inputFolder, "src", "", "Target folder where files are stored")
+	flag.StringVar(&outputFolder, "out", "", "Output folder where files will be saved")
 	flag.Parse()
 
 	if inputFolder == "" {
@@ -25,11 +29,14 @@ func main() {
 
 	var (
 		lastFolderName = filepath.Base(inputFolder)
-		rootDir        = filepath.Dir(strings.TrimSuffix(strings.Trim(inputFolder, "/"), lastFolderName))
+		rootDir        = filepath.Dir(strings.TrimSuffix(strings.TrimSuffix(inputFolder, "/"), lastFolderName))
 	)
-	rootDir = strings.TrimSuffix(strings.Trim(rootDir, "/"), filepath.Base(rootDir))
 
-	var outputFolder = filepath.Join(rootDir, "extracted", lastFolderName)
+	if outputFolder == "" {
+		//baseDir := filepath.Base(rootDir)
+		//rootDir = strings.TrimSuffix(strings.TrimSuffix(rootDir, "/"), baseDir)
+		outputFolder = filepath.Join(rootDir, "extracted", lastFolderName)
+	}
 	fmt.Printf("Using target folder %s\n", inputFolder)
 	fmt.Printf("Using output folder %s\n", outputFolder)
 	// Ensure the output folder exists
@@ -55,11 +62,11 @@ func main() {
 	}
 
 	filenameList := utils.ListAllFiles(inputFolder)
-	allowedFormats := []string{".cbz", ".cbr", ".zip", ".rar"}
+	allowedFormats := []string{".cbz", ".cbr", ".zip", ".rar", ".pdf"}
 	for _, fileAbsolutePath := range filenameList {
 		fileExt := filepath.Ext(fileAbsolutePath)
 		if slices.Contains(allowedFormats, fileExt) {
-			baseName := strings.TrimSuffix(fileAbsolutePath, fileExt)
+			baseName := strings.TrimSuffix(filepath.Base(fileAbsolutePath), fileExt)
 			sendChannel <- extractor.FileInfo{
 				BaseName:     baseName,
 				CompleteName: fileAbsolutePath,
