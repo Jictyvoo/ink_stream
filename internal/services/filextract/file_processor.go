@@ -1,11 +1,17 @@
 package filextract
 
 import (
+	"bytes"
+	"image"
+	"image/jpeg"
+	"io"
 	"log"
 	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/Jictyvoo/ink_stream/internal/deviceprof"
+	"github.com/Jictyvoo/ink_stream/internal/imageparser"
 	"github.com/Jictyvoo/ink_stream/internal/services/filextract/cbxr"
 	"github.com/Jictyvoo/ink_stream/internal/services/outdirwriter"
 )
@@ -18,8 +24,25 @@ type (
 	FileProcessorWorker struct {
 		OutputFolder   string
 		FilenameStream chan FileInfo
+		imgPipeline    imageparser.ImagePipeline
 	}
 )
+
+func NewFileProcessorWorker(
+	filenameStream chan FileInfo,
+	outputFolder string,
+	targetResolution deviceprof.Resolution,
+) *FileProcessorWorker {
+	return &FileProcessorWorker{
+		FilenameStream: filenameStream,
+		OutputFolder:   outputFolder,
+		imgPipeline: imageparser.NewImagePipeline(
+			imageparser.NewStepAutoContrast(0, 0),
+			imageparser.NewStepRescale(targetResolution),
+			imageparser.NewStepGrayScale(),
+		),
+	}
+}
 
 func (fp *FileProcessorWorker) Run() {
 	for filename := range fp.FilenameStream {
@@ -64,11 +87,21 @@ func (fp *FileProcessorWorker) processFile(file FileInfo) error {
 		}
 
 		fileName = cbxr.FileName(filepath.Base(string(fileName)))
-		if strings.HasPrefix(strings.ToLower(string(fileName)), "cred") && len(fileName) >= len("000.jpeg") {
+		if strings.HasPrefix(strings.ToLower(string(fileName)), "cred") &&
+			len(fileName) >= len("000.jpeg") {
 			continue
 		}
-		if err = fileWriter.Handler(string(fileName), fileResult.Data); err != nil {
+
+		var decodedImg image.Image
+		if decodedImg, _, err = image.Decode(bytes.NewReader(fileResult.Data)); err != nil {
 			return err
+		}
+
+		finalImg, processErr := fp.imgPipeline.Process(decodedImg)
+		if processErr = fileWriter.Handler(string(fileName), func(writer io.Writer) error {
+			return jpeg.Encode(writer, finalImg, nil)
+		}); processErr != nil {
+			return processErr
 		}
 	}
 
@@ -76,7 +109,10 @@ func (fp *FileProcessorWorker) processFile(file FileInfo) error {
 	return err
 }
 
-func (fp *FileProcessorWorker) newExtractor(file FileInfo, filePointer *os.File) (extractor cbxr.Extractor, err error) {
+func (fp *FileProcessorWorker) newExtractor(
+	file FileInfo,
+	filePointer *os.File,
+) (extractor cbxr.Extractor, err error) {
 	switch strings.ToLower(filepath.Ext(file.CompleteName)) {
 	case ".pdf":
 		return cbxr.NewPDFExtractor(filePointer)

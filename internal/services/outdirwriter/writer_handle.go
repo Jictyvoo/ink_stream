@@ -3,6 +3,7 @@ package outdirwriter
 import (
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"path/filepath"
@@ -64,7 +65,7 @@ func (wh WriterHandle) subFolderName(absFilename string) (directoryName string) 
 	return
 }
 
-func (wh WriterHandle) Handler(filename string, data []byte) error {
+func (wh WriterHandle) Handler(filename string, callback func(writer io.Writer) error) error {
 	destinationFolder := wh.outputDirectory
 	if fileIsCover(filename) {
 		destinationFolder = wh.coverDirectoryName
@@ -78,9 +79,8 @@ func (wh WriterHandle) Handler(filename string, data []byte) error {
 		return err
 	}
 	defer writeFile.Close()
-	_, err = writeFile.Write(data)
 
-	return err
+	return callback(writeFile)
 }
 
 func (wh WriterHandle) OnFinish() (err error) {

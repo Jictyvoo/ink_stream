@@ -10,6 +10,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/Jictyvoo/ink_stream/internal/deviceprof"
 	"github.com/Jictyvoo/ink_stream/internal/services/filextract"
 	"github.com/Jictyvoo/ink_stream/internal/utils"
 )
@@ -29,12 +30,14 @@ func main() {
 
 	var (
 		lastFolderName = filepath.Base(inputFolder)
-		rootDir        = filepath.Dir(strings.TrimSuffix(strings.TrimSuffix(inputFolder, "/"), lastFolderName))
+		rootDir        = filepath.Dir(
+			strings.TrimSuffix(strings.TrimSuffix(inputFolder, "/"), lastFolderName),
+		)
 	)
 
 	if outputFolder == "" {
-		//baseDir := filepath.Base(rootDir)
-		//rootDir = strings.TrimSuffix(strings.TrimSuffix(rootDir, "/"), baseDir)
+		// baseDir := filepath.Base(rootDir)
+		// rootDir = strings.TrimSuffix(strings.TrimSuffix(rootDir, "/"), baseDir)
 		outputFolder = filepath.Join(rootDir, "extracted", lastFolderName)
 	}
 	fmt.Printf("Using target folder %s\n", inputFolder)
@@ -48,14 +51,17 @@ func main() {
 		wg          sync.WaitGroup
 		sendChannel = make(chan filextract.FileInfo)
 	)
+
+	deviceProfile, _ := deviceprof.Profile(deviceprof.DeviceKindle11)
 	// Create worker pool
 	for range 5 {
 		wg.Add(1)
 		go func() {
-			fp := filextract.FileProcessorWorker{
-				OutputFolder:   outputFolder,
-				FilenameStream: sendChannel,
-			}
+			fp := filextract.NewFileProcessorWorker(
+				sendChannel,
+				outputFolder,
+				deviceProfile.Resolution,
+			)
 			defer wg.Done()
 			fp.Run()
 		}()
@@ -64,7 +70,7 @@ func main() {
 	filenameList := utils.ListAllFiles(inputFolder)
 	allowedFormats := []string{".cbz", ".cbr", ".zip", ".rar", ".pdf"}
 	for _, fileAbsolutePath := range filenameList {
-		fileExt := filepath.Ext(fileAbsolutePath)
+		fileExt := strings.ToLower(filepath.Ext(fileAbsolutePath))
 		if slices.Contains(allowedFormats, fileExt) {
 			baseName := strings.TrimSuffix(filepath.Base(fileAbsolutePath), fileExt)
 			sendChannel <- filextract.FileInfo{
