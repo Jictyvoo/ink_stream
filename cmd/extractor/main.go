@@ -10,7 +10,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/Jictyvoo/ink_stream/internal/services/extractor"
+	"github.com/Jictyvoo/ink_stream/internal/services/filextract"
 	"github.com/Jictyvoo/ink_stream/internal/utils"
 )
 
@@ -46,13 +46,13 @@ func main() {
 
 	var (
 		wg          sync.WaitGroup
-		sendChannel = make(chan extractor.FileInfo)
+		sendChannel = make(chan filextract.FileInfo)
 	)
 	// Create worker pool
 	for range 5 {
 		wg.Add(1)
 		go func() {
-			fp := extractor.FileProcessorWorker{
+			fp := filextract.FileProcessorWorker{
 				OutputFolder:   outputFolder,
 				FilenameStream: sendChannel,
 			}
@@ -67,7 +67,7 @@ func main() {
 		fileExt := filepath.Ext(fileAbsolutePath)
 		if slices.Contains(allowedFormats, fileExt) {
 			baseName := strings.TrimSuffix(filepath.Base(fileAbsolutePath), fileExt)
-			sendChannel <- extractor.FileInfo{
+			sendChannel <- filextract.FileInfo{
 				BaseName:     baseName,
 				CompleteName: fileAbsolutePath,
 			}

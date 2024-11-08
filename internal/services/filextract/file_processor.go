@@ -1,4 +1,4 @@
-package extractor
+package filextract
 
 import (
 	"log"
@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/Jictyvoo/ink_stream/internal/services/extractor/cbxr"
+	"github.com/Jictyvoo/ink_stream/internal/services/filextract/cbxr"
 	"github.com/Jictyvoo/ink_stream/internal/services/outdirwriter"
 )
 

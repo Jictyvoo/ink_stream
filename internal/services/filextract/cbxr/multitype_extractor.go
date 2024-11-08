@@ -15,7 +15,7 @@ func checkFileFormat(filename string, file io.Reader) (io.Reader, archiver.Extra
 		return nil, nil, err
 	}
 
-	// It must be an extractor
+	// It must be an filextract
 	if ex, ok := format.(archiver.Extractor); ok {
 		return fileReader, ex, nil
 	}
