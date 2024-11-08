@@ -6,9 +6,15 @@ import (
 	"image/draw"
 )
 
-type UnitStep interface {
-	PixelStep(imgColor color.Color) color.Color
-}
+type (
+	UnitStep interface {
+		PixelStep(imgColor color.Color) color.Color
+	}
+
+	PipeStep interface {
+		PerformExec(state *pipeState, opts processOptions) (err error)
+	}
+)
 
 func createDrawImage(img image.Image, bounds image.Rectangle) draw.Image {
 	switch img.ColorModel() {
