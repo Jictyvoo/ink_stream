@@ -57,8 +57,8 @@ func (fp *FileProcessorWorker) processFile(file FileInfo) error {
 			folderCounter:      &folderInfoCounter{},
 		}
 	)
-	extractor, err = cbxr.NewMultiZipRarExtractor(file.CompleteName, filePointer)
-	if err != nil {
+
+	if extractor, err = fp.newExtractor(file, filePointer); err != nil {
 		log.Printf("Failed to create extractor: %v", err)
 		return err
 	}
@@ -89,4 +89,19 @@ func (fp *FileProcessorWorker) processFile(file FileInfo) error {
 		)
 	}
 	return err
+}
+
+func (fp *FileProcessorWorker) newExtractor(file FileInfo, filePointer *os.File) (extractor cbxr.Extractor, err error) {
+	switch strings.ToLower(filepath.Ext(file.CompleteName)) {
+	case ".pdf":
+		return cbxr.NewPDFExtractor(filePointer)
+	case ".zip":
+		var stat os.FileInfo
+		if stat, err = filePointer.Stat(); err != nil {
+			return nil, err
+		}
+		return cbxr.NewCBZExtractor(filePointer, stat.Size())
+	default:
+		return cbxr.NewMultiZipRarExtractor(file.CompleteName, filePointer)
+	}
 }

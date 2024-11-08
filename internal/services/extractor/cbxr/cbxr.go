@@ -12,8 +12,8 @@ type (
 	FileResult        utils.ResultErr[[]byte]
 	FileName          string
 	FileContentStream interface {
-		io.Reader
 		io.ReaderAt
+		io.ReadSeeker
 	}
 )
 
