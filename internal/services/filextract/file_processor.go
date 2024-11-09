@@ -1,11 +1,11 @@
 package filextract
 
 import (
-	"bytes"
-	"image"
-	"image/jpeg"
-	"io"
+	_ "embed"
+	"errors"
+	"fmt"
 	"log"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"strings"
@@ -57,7 +57,7 @@ func (fp *FileProcessorWorker) Run() {
 	}
 }
 
-func (fp *FileProcessorWorker) processFile(file FileInfo) error {
+func (fp *FileProcessorWorker) processFile(file FileInfo) (resultErr error) {
 	extractDir := filepath.Join(fp.OutputFolder, file.BaseName)
 
 	// Create the directory for the extracted files
@@ -70,17 +70,24 @@ func (fp *FileProcessorWorker) processFile(file FileInfo) error {
 		log.Printf("Failed to open %s: %v", file.CompleteName, err)
 		return err
 	}
+	defer func(filePointer *os.File) {
+		if err = filePointer.Close(); err != nil {
+			resultErr = errors.Join(resultErr, err)
+		}
+	}(filePointer)
 
 	var (
-		extractor  cbxr.Extractor
-		fileWriter = outdirwriter.NewWriterHandle(extractDir)
+		extractor       cbxr.Extractor
+		multiThreadProc = NewMultiThreadImageProcessor(extractDir, fp.imgPipeline)
 	)
+	defer multiThreadProc.Close()
 
 	if extractor, err = fp.newExtractor(file, filePointer); err != nil {
 		log.Printf("Failed to create extractor: %v", err)
 		return err
 	}
 
+	var totalSent uint64
 	for fileName, fileResult := range extractor.FileSeq() {
 		if fileResult.Error != nil {
 			return fileResult.Error
@@ -92,20 +99,16 @@ func (fp *FileProcessorWorker) processFile(file FileInfo) error {
 			continue
 		}
 
-		var decodedImg image.Image
-		if decodedImg, _, err = image.Decode(bytes.NewReader(fileResult.Data)); err != nil {
-			return err
-		}
-
-		finalImg, processErr := fp.imgPipeline.Process(decodedImg)
-		if processErr = fileWriter.Handler(string(fileName), func(writer io.Writer) error {
-			return jpeg.Encode(writer, finalImg, nil)
-		}); processErr != nil {
-			return processErr
-		}
+		multiThreadProc.Process(string(fileName), fileResult.Data)
+		totalSent++
 	}
 
-	err = fileWriter.OnFinish()
+	_ = multiThreadProc.Close()
+	err = multiThreadProc.Shutdown()
+	slog.Info(
+		fmt.Sprintf("Sent a total of %d files", totalSent),
+		slog.String("inputFile", file.CompleteName),
+	)
 	return err
 }
 

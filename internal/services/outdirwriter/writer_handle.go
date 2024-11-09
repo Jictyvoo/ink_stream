@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync/atomic"
 
 	"github.com/Jictyvoo/ink_stream/internal/utils"
 )
@@ -15,7 +16,7 @@ import (
 const defaultContentDir = "content-main"
 
 type (
-	folderInfoCounter struct{ onRoot, cover, onSubDir, total uint32 }
+	folderInfoCounter struct{ onRoot, cover, onSubDir, total atomic.Uint32 }
 	WriterHandle      struct {
 		outputDirectory    string
 		coverDirectoryName string
@@ -46,14 +47,14 @@ func (wh WriterHandle) subFolderName(absFilename string) (directoryName string) 
 	folderDir := wh.defaultDir()
 	if directoryName != filename && directoryName != "." {
 		folderDir = filepath.Join(wh.outputDirectory, directoryName)
-		wh.folderCounter.onSubDir++
+		wh.folderCounter.onSubDir.Add(1)
 	} else {
 		directoryName = defaultContentDir
 		switch fileIsCover(filename) {
 		case true:
-			wh.folderCounter.cover++
+			wh.folderCounter.cover.Add(1)
 		case false:
-			wh.folderCounter.onRoot++
+			wh.folderCounter.onRoot.Add(1)
 		}
 	}
 
@@ -61,7 +62,7 @@ func (wh WriterHandle) subFolderName(absFilename string) (directoryName string) 
 		log.Fatal(err)
 	}
 
-	wh.folderCounter.total++
+	wh.folderCounter.total.Add(1)
 	return
 }
 
@@ -69,7 +70,7 @@ func (wh WriterHandle) Handler(filename string, callback func(writer io.Writer) 
 	destinationFolder := wh.outputDirectory
 	if fileIsCover(filename) {
 		destinationFolder = wh.coverDirectoryName
-		wh.folderCounter.cover++
+		wh.folderCounter.cover.Add(1)
 	} else if subFolderName := wh.subFolderName(filename); subFolderName != "" {
 		destinationFolder = filepath.Join(wh.outputDirectory, subFolderName)
 	}
@@ -84,8 +85,8 @@ func (wh WriterHandle) Handler(filename string, callback func(writer io.Writer) 
 }
 
 func (wh WriterHandle) OnFinish() (err error) {
-	if wh.folderCounter.onRoot > 0 && wh.folderCounter.onSubDir > 0 {
-		if wh.folderCounter.cover > 0 {
+	if wh.folderCounter.onRoot.Load() > 0 && wh.folderCounter.onSubDir.Load() > 0 {
+		if wh.folderCounter.cover.Load() > 0 {
 			err = fmt.Errorf("only one of onRoot and onSubDir may be specified")
 			return err
 		}
