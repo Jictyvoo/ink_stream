@@ -5,7 +5,7 @@ import (
 	"image"
 	"image/jpeg"
 	"io"
-	"log"
+	"log/slog"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -60,7 +60,11 @@ func (mtip *MultiThreadImageProcessor) workerHandl() {
 	for entry := range mtip.inputChan {
 		err := mtip.run(entry.A, entry.B)
 		if err != nil {
-			log.Printf("failed while running worker for %s: %s\n", entry.A, err.Error())
+			slog.Info(
+				"failed while running image worker",
+				slog.String("filename", entry.A),
+				slog.String("error", err.Error()),
+			)
 			return
 		}
 	}
@@ -92,8 +96,9 @@ func (mtip *MultiThreadImageProcessor) Close() error {
 }
 
 func (mtip *MultiThreadImageProcessor) Shutdown() error {
+	err := mtip.Close()
 	mtip.wg.Wait() // Wait all goroutines to finish
 
-	err := mtip.fileWriter.OnFinish()
+	err = mtip.fileWriter.OnFinish()
 	return err
 }

@@ -4,7 +4,6 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
-	"log"
 	"log/slog"
 	"os"
 	"path/filepath"
@@ -44,17 +43,19 @@ func NewFileProcessorWorker(
 	}
 }
 
-func (fp *FileProcessorWorker) Run() {
+func (fp *FileProcessorWorker) Run() error {
 	for filename := range fp.FilenameStream {
 		if err := fp.processFile(filename); err != nil {
-			log.Fatal(err)
+			return err
 		}
 
 		// After finishing file processing, start the post analysis
 		if err := outdirwriter.MoveFirstFileToCoverFolder(filepath.Join(fp.OutputFolder, filename.BaseName)); err != nil {
-			log.Fatal(err)
+			return err
 		}
 	}
+
+	return nil
 }
 
 func (fp *FileProcessorWorker) processFile(file FileInfo) (resultErr error) {
@@ -67,7 +68,11 @@ func (fp *FileProcessorWorker) processFile(file FileInfo) (resultErr error) {
 
 	filePointer, err := os.OpenFile(file.CompleteName, os.O_RDONLY, 0755)
 	if err != nil {
-		log.Printf("Failed to open %s: %v", file.CompleteName, err)
+		slog.Error(
+			"Failed to open input file",
+			slog.String("filename", file.CompleteName),
+			slog.String("error", err.Error()),
+		)
 		return err
 	}
 	defer func(filePointer *os.File) {
@@ -83,7 +88,7 @@ func (fp *FileProcessorWorker) processFile(file FileInfo) (resultErr error) {
 	defer multiThreadProc.Close()
 
 	if extractor, err = fp.newExtractor(file, filePointer); err != nil {
-		log.Printf("Failed to create extractor: %v", err)
+		slog.Error("Failed to create extractor", slog.String("error", err.Error()))
 		return err
 	}
 
@@ -103,7 +108,6 @@ func (fp *FileProcessorWorker) processFile(file FileInfo) (resultErr error) {
 		totalSent++
 	}
 
-	_ = multiThreadProc.Close()
 	err = multiThreadProc.Shutdown()
 	slog.Info(
 		fmt.Sprintf("Sent a total of %d files", totalSent),
@@ -113,18 +117,13 @@ func (fp *FileProcessorWorker) processFile(file FileInfo) (resultErr error) {
 }
 
 func (fp *FileProcessorWorker) newExtractor(
-	file FileInfo,
-	filePointer *os.File,
+	file FileInfo, filePointer *os.File,
 ) (extractor cbxr.Extractor, err error) {
 	switch strings.ToLower(filepath.Ext(file.CompleteName)) {
 	case ".pdf":
 		return cbxr.NewPDFExtractor(filePointer)
 	case ".zip":
-		var stat os.FileInfo
-		if stat, err = filePointer.Stat(); err != nil {
-			return nil, err
-		}
-		return cbxr.NewCBZExtractor(filePointer, stat.Size())
+		return cbxr.NewCBZExtractor(filePointer)
 	default:
 		return cbxr.NewMultiZipRarExtractor(file.CompleteName, filePointer)
 	}

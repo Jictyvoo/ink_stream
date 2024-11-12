@@ -1,7 +1,7 @@
 package outdirwriter
 
 import (
-	"log"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"strings"
@@ -15,13 +15,13 @@ func fileIsCover(filename string) bool {
 
 func CreateOutDir(extractDir string, suffix string) error {
 	if err := os.MkdirAll(extractDir, 0755); err != nil {
-		log.Printf("Failed to create directory for extraction: %v", err)
+		slog.Error("Failed to create directory for extraction", slog.String("error", err.Error()))
 		return err
 	}
 
 	// Create a covers output directory
 	if err := os.MkdirAll(filepath.Join(extractDir, suffix), 0755); err != nil {
-		log.Printf("Failed to create directory for extraction: %v", err)
+		slog.Error("Failed to create directory for extraction", slog.String("error", err.Error()))
 		return err
 	}
 

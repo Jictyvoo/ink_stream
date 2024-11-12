@@ -4,15 +4,21 @@ import (
 	"archive/zip"
 	"io"
 	"iter"
+	"os"
 )
 
 type CBZExtractor struct {
 	zipReader *zip.Reader
 }
 
-func NewCBZExtractor(fileReader FileContentStream, size int64) (*CBZExtractor, error) {
-	zipFile, err := zip.NewReader(fileReader, size)
+func NewCBZExtractor(filePointer *os.File) (*CBZExtractor, error) {
+	stat, err := filePointer.Stat()
 	if err != nil {
+		return nil, err
+	}
+
+	var zipFile *zip.Reader
+	if zipFile, err = zip.NewReader(filePointer, stat.Size()); err != nil {
 		return nil, err
 	}
 
