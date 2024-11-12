@@ -4,6 +4,7 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
+	"image/color"
 	"log/slog"
 	"os"
 	"path/filepath"
@@ -24,21 +25,24 @@ type (
 		OutputFolder   string
 		FilenameStream chan FileInfo
 		imgPipeline    imageparser.ImagePipeline
+		profile        deviceprof.DeviceProfile
 	}
 )
 
 func NewFileProcessorWorker(
 	filenameStream chan FileInfo,
 	outputFolder string,
-	targetResolution deviceprof.Resolution,
+	targetProfile deviceprof.DeviceProfile,
 ) *FileProcessorWorker {
 	return &FileProcessorWorker{
 		FilenameStream: filenameStream,
 		OutputFolder:   outputFolder,
+		profile:        targetProfile,
 		imgPipeline: imageparser.NewImagePipeline(
-			imageparser.NewStepAutoContrast(0, 0),
-			imageparser.NewStepRescale(targetResolution),
+			color.Palette(targetProfile.Palette),
+			imageparser.NewStepRescale(targetProfile.Resolution),
 			imageparser.NewStepGrayScale(),
+			imageparser.NewStepAutoContrast(0, 0),
 		),
 	}
 }

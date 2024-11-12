@@ -58,12 +58,10 @@ func main() {
 		wg.Add(1)
 		go func() {
 			fp := filextract.NewFileProcessorWorker(
-				sendChannel,
-				outputFolder,
-				deviceProfile.Resolution,
+				sendChannel, outputFolder, deviceProfile,
 			)
 			defer wg.Done()
-			fp.Run()
+			_ = fp.Run()
 		}()
 	}
 
