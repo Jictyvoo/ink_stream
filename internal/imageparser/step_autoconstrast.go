@@ -12,10 +12,11 @@ var _ PipeStep = (*StepAutoContrastImage)(nil)
 type StepAutoContrastImage struct {
 	cutoff       [2]float64
 	gammaCorrect StepGammaCorrectionImage
+	baseImageStep
 }
 
-func NewStepAutoContrast(cutLow, cutHigh float64) StepAutoContrastImage {
-	return StepAutoContrastImage{
+func NewStepAutoContrast(cutLow, cutHigh float64) *StepAutoContrastImage {
+	return &StepAutoContrastImage{
 		cutoff: [2]float64{cutLow, cutHigh},
 	}
 }
@@ -23,7 +24,7 @@ func NewStepAutoContrast(cutLow, cutHigh float64) StepAutoContrastImage {
 // AutoContrast applies autocontrast to an image.
 func (step StepAutoContrastImage) AutoContrast(img image.Image) image.Image {
 	bounds := img.Bounds()
-	newImg := createDrawImage(img, bounds)
+	newImg := step.drawImage(img, bounds)
 	histogram := imgutils.CalculateHistogram(img)
 
 	// Apply cutoff to histogram

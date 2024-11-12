@@ -4,25 +4,32 @@ import (
 	"image"
 	"image/color"
 	"image/draw"
+
+	"github.com/Jictyvoo/ink_stream/internal/utils/imgutils"
 )
 
 type (
+	paletteFactoryStep interface {
+		UpdateDrawFactory(fac imgutils.DrawImageFactory)
+	}
 	UnitStep interface {
 		PixelStep(imgColor color.Color) color.Color
 	}
 
 	PipeStep interface {
 		PerformExec(state *pipeState, opts processOptions) (err error)
+		paletteFactoryStep
 	}
 )
 
-func createDrawImage(img image.Image, bounds image.Rectangle) draw.Image {
-	switch img.ColorModel() {
-	case color.GrayModel, color.Gray16Model:
-		return image.NewGray(bounds)
-	case color.RGBAModel, color.RGBA64Model, color.NRGBAModel, color.NRGBA64Model:
-		return image.NewRGBA(bounds)
-	}
+type baseImageStep struct {
+	fac imgutils.DrawImageFactory
+}
 
-	return image.NewRGBA(bounds)
+func (s *baseImageStep) drawImage(img image.Image, bounds image.Rectangle) draw.Image {
+	return s.fac.CreateDrawImage(img, bounds)
+}
+
+func (s *baseImageStep) UpdateDrawFactory(fac imgutils.DrawImageFactory) {
+	s.fac = fac
 }

@@ -7,20 +7,26 @@ import (
 	"github.com/Jictyvoo/ink_stream/internal/utils/imgutils"
 )
 
-var _ UnitStep = (*StepGammaCorrectionImage)(nil)
-var _ PipeStep = (*StepGammaCorrectionImage)(nil)
+var (
+	_ UnitStep = (*StepGammaCorrectionImage)(nil)
+	_ PipeStep = (*StepGammaCorrectionImage)(nil)
+)
 
 type StepGammaCorrectionImage struct {
 	lut   [256]uint8
 	gamma float64
+	baseImageStep
 }
 
-func NewStepGammaCorrection() StepGammaCorrectionImage {
-	return StepGammaCorrectionImage{lut: StepGammaCorrectionImage{}.lookupTable(1)}
+func NewStepGammaCorrection() *StepGammaCorrectionImage {
+	return &StepGammaCorrectionImage{lut: StepGammaCorrectionImage{}.lookupTable(1)}
 }
 
 func NewStepGammaCorrectionPreDefined(gamma float64) StepGammaCorrectionImage {
-	return StepGammaCorrectionImage{lut: StepGammaCorrectionImage{}.lookupTable(gamma), gamma: gamma}
+	return StepGammaCorrectionImage{
+		lut:   StepGammaCorrectionImage{}.lookupTable(gamma),
+		gamma: gamma,
+	}
 }
 
 func (step StepGammaCorrectionImage) lookupTable(gamma float64) [256]uint8 {
@@ -48,7 +54,7 @@ func (step StepGammaCorrectionImage) PerformExec(
 	state *pipeState, opts processOptions,
 ) (err error) {
 	bounds := state.img.Bounds()
-	newImg := createDrawImage(state.img, bounds)
+	newImg := step.drawImage(state.img, bounds)
 	if opts.gamma != 1 {
 		step.lut = step.lookupTable(opts.gamma)
 	}

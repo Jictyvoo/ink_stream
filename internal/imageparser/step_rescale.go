@@ -13,10 +13,11 @@ var _ PipeStep = (*StepRescaleImage)(nil)
 type StepRescaleImage struct {
 	resolution deviceprof.Resolution
 	isPixelArt bool
+	baseImageStep
 }
 
-func NewStepRescale(resolution deviceprof.Resolution) StepRescaleImage {
-	return StepRescaleImage{resolution: resolution}
+func NewStepRescale(resolution deviceprof.Resolution) *StepRescaleImage {
+	return &StepRescaleImage{resolution: resolution}
 }
 
 func NewStepThumbnail() StepRescaleImage {
@@ -25,7 +26,7 @@ func NewStepThumbnail() StepRescaleImage {
 
 func (step StepRescaleImage) PerformExec(state *pipeState, _ processOptions) (err error) {
 	bounds := image.Rect(0, 0, int(step.resolution.Width), int(step.resolution.Height))
-	resized := createDrawImage(state.img, bounds)
+	resized := step.drawImage(state.img, bounds)
 
 	drawInterpolator := draw.ApproxBiLinear
 	if step.isPixelArt {

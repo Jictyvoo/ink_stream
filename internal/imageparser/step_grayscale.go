@@ -7,13 +7,17 @@ import (
 	"github.com/Jictyvoo/ink_stream/internal/utils/imgutils"
 )
 
-var _ UnitStep = (*StepGrayScaleImage)(nil)
-var _ PipeStep = (*StepGrayScaleImage)(nil)
+var (
+	_ UnitStep = (*StepGrayScaleImage)(nil)
+	_ PipeStep = (*StepGrayScaleImage)(nil)
+)
 
-type StepGrayScaleImage struct{}
+type StepGrayScaleImage struct {
+	baseImageStep
+}
 
-func NewStepGrayScale() StepGrayScaleImage {
-	return StepGrayScaleImage{}
+func NewStepGrayScale() *StepGrayScaleImage {
+	return &StepGrayScaleImage{}
 }
 
 func (step StepGrayScaleImage) PerformExec(state *pipeState, _ processOptions) (err error) {
