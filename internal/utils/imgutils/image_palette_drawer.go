@@ -6,9 +6,14 @@ import (
 	"image/draw"
 )
 
-type DrawImageFactory interface {
-	CreateDrawImage(img image.Image, bounds image.Rectangle) draw.Image
-}
+type (
+	ColorConverter interface {
+		Convert(c color.Color) color.Color
+	}
+	DrawImageFactory interface {
+		CreateDrawImage(img image.Image, bounds image.Rectangle) draw.Image
+	}
+)
 
 type (
 	ImagePaletteDrawer struct {

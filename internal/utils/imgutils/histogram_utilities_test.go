@@ -91,14 +91,8 @@ func TestHiloHistogram(t *testing.T) {
 		},
 	}
 
-	// Define initial min and max values and stop channels
-	var (
-		minVal [3]uint8
-		maxVal = [3]uint8{255, 255, 255}
-	)
-
 	// Calculate hilo histogram
-	minResult, maxResult := histogram.HiloHistogram(minVal, maxVal)
+	minResult, maxResult := histogram.HiloHistogram()
 
 	// Expected min and max values based on histogram data
 	expectedMin := [3]uint8{64, 10, 50}
