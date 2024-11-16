@@ -31,7 +31,7 @@ func CropBox(img image.Image, colorConverter ColorConverter, opts BoxOptions) im
 		transparentAnalysis, whiteAnalysis struct {
 			row, column []uint64
 		}
-		whiteValue uint8 // Keeps track of the most prominent "white" value.
+		whiteValue uint64 // Keeps track of the most prominent "white" value.
 	)
 
 	// Allocate slices for analyzing transparency or minimum color if needed.
@@ -59,10 +59,10 @@ func CropBox(img image.Image, colorConverter ColorConverter, opts BoxOptions) im
 		if opts.Is(BoxEliminateMinimumColor) {
 			convertedPixel := colorConverter.Convert(pixel)
 			r, g, b, _ := convertedPixel.RGBA()
-			pixelValue := uint8((r>>8)+(g>>8)+(b>>8)) / 3
+			pixelValue := (uint64(r) << 8) | uint64(g) | uint64(b>>8)
 
 			// Track rows and columns matching the current "white" value.
-			if whiteValue == 0 || pixelValue == whiteValue {
+			if whiteValue == 0 || pixelValue >= whiteValue {
 				whiteAnalysis.column[x]++
 				whiteAnalysis.row[y]++
 			}

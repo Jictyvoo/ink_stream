@@ -29,7 +29,7 @@ func NewImageFactory(palette color.Palette) DrawImageFactory {
 	return &imageFactory{palette: palette}
 }
 
-func (fac imageFactory) drawImageFromImage(img image.Image, bounds image.Rectangle) draw.Image {
+func NewDrawFromImgColorModel(img image.Image, bounds image.Rectangle) draw.Image {
 	switch img.ColorModel() {
 	case color.GrayModel, color.Gray16Model:
 		return image.NewGray(bounds)
@@ -41,7 +41,7 @@ func (fac imageFactory) drawImageFromImage(img image.Image, bounds image.Rectang
 }
 
 func (fac imageFactory) CreateDrawImage(img image.Image, bounds image.Rectangle) draw.Image {
-	newImg := fac.drawImageFromImage(img, bounds)
+	newImg := NewDrawFromImgColorModel(img, bounds)
 	return ImagePaletteDrawer{palette: fac.palette, Image: newImg}
 }
 
