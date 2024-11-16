@@ -16,11 +16,14 @@ const (
 	BoxEliminateMinimumColor
 )
 
+// CropBox calculates a bounding box for the given image by analyzing transparent pixels or minimum color values.
 func CropBox(img image.Image, colorConverter ColorConverter, opts BoxOptions) image.Rectangle {
+	// Use a default color converter if none is provided.
 	if colorConverter == nil {
 		colorConverter = color.GrayModel
 	}
 
+	// Initialize bounding box and image dimensions.
 	var (
 		bbox                               = img.Bounds()
 		width                              = bbox.Dx()
@@ -28,9 +31,10 @@ func CropBox(img image.Image, colorConverter ColorConverter, opts BoxOptions) im
 		transparentAnalysis, whiteAnalysis struct {
 			row, column []uint64
 		}
-		whiteValue uint8
+		whiteValue uint8 // Keeps track of the most prominent "white" value.
 	)
 
+	// Allocate slices for analyzing transparency or minimum color if needed.
 	if opts.Is(BoxEliminateTransparent) {
 		transparentAnalysis.row = make([]uint64, height)
 		transparentAnalysis.column = make([]uint64, width)
@@ -39,28 +43,34 @@ func CropBox(img image.Image, colorConverter ColorConverter, opts BoxOptions) im
 		whiteAnalysis.row = make([]uint64, height)
 		whiteAnalysis.column = make([]uint64, width)
 	}
-	// Define initial bounding box by scanning non-background pixels (this part depends on image content)
-	for x := range width {
-		for y := range height {
-			pixel := img.At(x, y)
-			_, _, _, a := pixel.RGBA()
-			if opts.Is(BoxEliminateTransparent) && a == 0 {
-				transparentAnalysis.column[x]++
-				transparentAnalysis.row[y]++
+
+	// Iterate over all pixels in the image using a custom Iterator function.
+	for x, y := range Iterator(img) {
+		pixel := img.At(x, y)
+		_, _, _, a := pixel.RGBA() // Extract alpha value to check transparency.
+
+		// Update transparency analysis if enabled.
+		if opts.Is(BoxEliminateTransparent) && a == 0 {
+			transparentAnalysis.column[x]++
+			transparentAnalysis.row[y]++
+		}
+
+		// Update minimum color analysis if enabled.
+		if opts.Is(BoxEliminateMinimumColor) {
+			convertedPixel := colorConverter.Convert(pixel)
+			r, g, b, _ := convertedPixel.RGBA()
+			pixelValue := uint8((r>>8)+(g>>8)+(b>>8)) / 3
+
+			// Track rows and columns matching the current "white" value.
+			if whiteValue == 0 || pixelValue == whiteValue {
+				whiteAnalysis.column[x]++
+				whiteAnalysis.row[y]++
 			}
-			if opts.Is(BoxEliminateMinimumColor) {
-				convertedPixel := colorConverter.Convert(pixel)
-				r, g, b, _ := convertedPixel.RGBA()
-				pixelValue := uint8((r>>8)+(g>>8)+(b>>8)) / 3
-				if whiteValue == 0 || pixelValue == whiteValue {
-					whiteAnalysis.column[x]++
-					whiteAnalysis.row[y]++
-				}
-				whiteValue = max(whiteValue, pixelValue)
-			}
+			whiteValue = max(whiteValue, pixelValue) // Update the maximum white value.
 		}
 	}
 
+	// Adjust the bounding box based on analysis slices.
 	newBox := bbox
 	if opts.Is(BoxEliminateMinimumColor) {
 		newBox = cutBoxBasedOn(newBox, whiteAnalysis)
@@ -71,40 +81,54 @@ func CropBox(img image.Image, colorConverter ColorConverter, opts BoxOptions) im
 	return newBox
 }
 
+// cutBoxBasedOn refines the bounding box by removing rows and columns
+// that match the background criteria defined in analysisSlices.
 func cutBoxBasedOn(
 	originalBox image.Rectangle,
 	analysisSlices struct{ row, column []uint64 },
 ) image.Rectangle {
 	width, height := originalBox.Dx(), originalBox.Dy()
-	newValues := [2]struct{ x, y int }{{}, {width, height}}
-	constructors := func(value uint64, maxValue int, index *uint8, destination *int) {
-		switch value {
+	newValues := [2]image.Point{originalBox.Min, originalBox.Max}
+
+	// Helper function to adjust bounding box based on analysis.
+	valueChanger := func(valueSlice []uint64, index int, maxValue int, minMaxSel *uint8, destination *int, modifier *int) int {
+		workOnMinimum := *minMaxSel == 0
+		switch valueSlice[index] {
 		case uint64(maxValue):
-			modifier := 1
-			if *index > 0 {
-				modifier *= -1
+			*destination += *modifier
+		default: // No match, increment minMaxSel to start processing the opposite edge.
+			*minMaxSel = min(1, *minMaxSel+1)
+			if workOnMinimum {
+				*modifier = -1
+				index = maxValue
 			}
-			*destination += modifier
-		default:
-			*index = min(1, *index+1)
+		}
+
+		return index + *modifier
+	}
+
+	var (
+		valIndexes   struct{ x, y uint8 } // Tracks which edge (min or max) is being processed.
+		loopModifier = image.Point{
+			X: 1, Y: 1,
+		} // Determines scan direction (forward or backward).
+		colIndex, rowIndex int // Current column and row indices.
+	)
+
+	for range max(width, height) {
+		if colIndex < width {
+			colIndex = valueChanger(
+				analysisSlices.column, colIndex, width,
+				&valIndexes.x, &newValues[valIndexes.x].X, &loopModifier.X,
+			)
+		}
+		if rowIndex < height {
+			rowIndex = valueChanger(
+				analysisSlices.row, rowIndex, height,
+				&valIndexes.y, &newValues[valIndexes.y].Y, &loopModifier.Y,
+			)
 		}
 	}
 
-	var valIndexes struct{ x, y uint8 }
-	for index := range max(width, height) {
-		if index < width {
-			constructors(
-				analysisSlices.column[index], width,
-				&valIndexes.x, &newValues[valIndexes.x].x,
-			)
-		}
-		if index < height {
-			constructors(
-				analysisSlices.row[index], height,
-				&valIndexes.y, &newValues[valIndexes.y].y,
-			)
-		}
-	}
-
-	return image.Rect(newValues[0].x, newValues[0].y, newValues[1].x, newValues[1].y)
+	return image.Rect(newValues[0].X, newValues[0].Y, newValues[1].X, newValues[1].Y)
 }
