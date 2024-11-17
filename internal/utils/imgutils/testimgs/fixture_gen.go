@@ -1,4 +1,4 @@
-package imgutils
+package testimgs
 
 import (
 	"crypto/sha256"
@@ -8,7 +8,7 @@ import (
 )
 
 func ImageFixtures(total uint8, seed []byte) []image.Image {
-	var resultImgs []image.Image
+	resultImgs := make([]image.Image, 0, total)
 
 	// Seed the random number generator with the hash of the seed to ensure sufficient entropy.
 	hash := sha256.Sum256(seed)

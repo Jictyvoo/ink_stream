@@ -6,6 +6,8 @@ import (
 	"image/color"
 	"slices"
 	"testing"
+
+	"github.com/Jictyvoo/ink_stream/internal/utils/imgutils/testimgs"
 )
 
 //go:embed image_compare_test.go
@@ -13,7 +15,9 @@ var imageCompareFile []byte
 
 func TestIsImageEqual(t *testing.T) {
 	const totalFixtures = 6
-	imgFixtures := ([totalFixtures]image.Image)(ImageFixtures(totalFixtures, imageCompareFile))
+	imgFixtures := ([totalFixtures]image.Image)(
+		testimgs.ImageFixtures(totalFixtures, imageCompareFile),
+	)
 	var whiteImagePix [24]uint8
 	for i := range whiteImagePix {
 		whiteImagePix[i] = 255

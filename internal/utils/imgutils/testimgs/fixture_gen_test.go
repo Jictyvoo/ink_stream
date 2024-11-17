@@ -1,4 +1,4 @@
-package imgutils
+package testimgs
 
 import (
 	"bytes"
