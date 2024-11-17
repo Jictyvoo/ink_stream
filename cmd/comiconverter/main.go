@@ -10,8 +10,8 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/Jictyvoo/ink_stream/internal/deviceprof"
 	"github.com/Jictyvoo/ink_stream/internal/utils"
+	"github.com/Jictyvoo/ink_stream/pkg/deviceprof"
 )
 
 const kccScriptPath = "/opt/kcc/kcc-c2e.py"

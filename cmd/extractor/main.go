@@ -10,9 +10,9 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/Jictyvoo/ink_stream/internal/deviceprof"
 	"github.com/Jictyvoo/ink_stream/internal/services/filextract"
 	"github.com/Jictyvoo/ink_stream/internal/utils"
+	"github.com/Jictyvoo/ink_stream/pkg/deviceprof"
 )
 
 func main() {

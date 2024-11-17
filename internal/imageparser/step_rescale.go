@@ -5,7 +5,7 @@ import (
 
 	"golang.org/x/image/draw"
 
-	"github.com/Jictyvoo/ink_stream/internal/deviceprof"
+	"github.com/Jictyvoo/ink_stream/pkg/deviceprof"
 )
 
 var _ PipeStep = (*StepRescaleImage)(nil)
