@@ -7,7 +7,7 @@ import (
 
 type BoxOptions uint8
 
-func (bo BoxOptions) Is(opt BoxOptions) bool {
+func (bo BoxOptions) Has(opt BoxOptions) bool {
 	return bo&opt == opt
 }
 
@@ -35,11 +35,11 @@ func CropBox(img image.Image, colorConverter ColorConverter, opts BoxOptions) im
 	)
 
 	// Allocate slices for analyzing transparency or minimum color if needed.
-	if opts.Is(BoxEliminateTransparent) {
+	if opts.Has(BoxEliminateTransparent) {
 		transparentAnalysis.row = make([]uint64, height)
 		transparentAnalysis.column = make([]uint64, width)
 	}
-	if opts.Is(BoxEliminateMinimumColor) {
+	if opts.Has(BoxEliminateMinimumColor) {
 		whiteAnalysis.row = make([]uint64, height)
 		whiteAnalysis.column = make([]uint64, width)
 	}
@@ -50,13 +50,13 @@ func CropBox(img image.Image, colorConverter ColorConverter, opts BoxOptions) im
 		_, _, _, a := pixel.RGBA() // Extract alpha value to check transparency.
 
 		// Update transparency analysis if enabled.
-		if opts.Is(BoxEliminateTransparent) && a == 0 {
+		if opts.Has(BoxEliminateTransparent) && a == 0 {
 			transparentAnalysis.column[x]++
 			transparentAnalysis.row[y]++
 		}
 
 		// Update minimum color analysis if enabled.
-		if opts.Is(BoxEliminateMinimumColor) {
+		if opts.Has(BoxEliminateMinimumColor) {
 			convertedPixel := colorConverter.Convert(pixel)
 			r, g, b, _ := convertedPixel.RGBA()
 			pixelValue := (uint64(r) << 8) | uint64(g) | uint64(b>>8)
@@ -71,14 +71,14 @@ func CropBox(img image.Image, colorConverter ColorConverter, opts BoxOptions) im
 	}
 
 	// Adjust the bounding box based on analysis slices.
-	newBox := bbox
-	if opts.Is(BoxEliminateMinimumColor) {
-		newBox = cutBoxBasedOn(newBox, whiteAnalysis)
+	switch {
+	case opts.Has(BoxEliminateMinimumColor):
+		return cutBoxBasedOn(bbox, whiteAnalysis)
+	case opts.Has(BoxEliminateTransparent):
+		return cutBoxBasedOn(bbox, transparentAnalysis)
 	}
-	if opts.Is(BoxEliminateTransparent) {
-		newBox = cutBoxBasedOn(newBox, transparentAnalysis)
-	}
-	return newBox
+
+	return bbox
 }
 
 // cutBoxBasedOn refines the bounding box by removing rows and columns
@@ -131,4 +131,19 @@ func cutBoxBasedOn(
 	}
 
 	return image.Rect(newValues[0].X, newValues[0].Y, newValues[1].X, newValues[1].Y)
+}
+
+func MarginBox(bounds image.Rectangle, percentage float64) image.Rectangle {
+	width, height := bounds.Dx(), bounds.Dy()
+
+	// Calculate minimum and maximum margins
+	marginSize := image.Pt(int(percentage*float64(width)+0.5), int(percentage*float64(height)+0.5))
+
+	boundingBox := image.Rect(
+		max(0, min(bounds.Min.X-marginSize.X, bounds.Min.X)),
+		max(0, min(bounds.Min.Y-marginSize.Y, bounds.Min.Y)),
+		bounds.Max.X+marginSize.X, bounds.Max.Y+marginSize.Y,
+	)
+
+	return boundingBox
 }

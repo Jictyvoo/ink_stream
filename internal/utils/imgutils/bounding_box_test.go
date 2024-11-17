@@ -2,7 +2,6 @@ package imgutils
 
 import (
 	"image"
-	"image/draw"
 	"testing"
 
 	"github.com/Jictyvoo/ink_stream/internal/utils/imgutils/testimgs"
@@ -61,9 +60,43 @@ func TestCropBox(t *testing.T) {
 	}
 }
 
-// Helper function: Crop an image to the given rectangle
-func cropImage(img image.Image, rect image.Rectangle) image.Image {
-	cropped := NewDrawFromImgColorModel(img, rect)
-	draw.Draw(cropped, rect, img, rect.Min, draw.Src)
-	return cropped
+func TestMarginBox(t *testing.T) {
+	tests := []struct {
+		name     string
+		bounds   image.Rectangle
+		expected image.Rectangle
+	}{
+		{
+			name:     "Small rectangle",
+			bounds:   image.Rect(10, 10, 50, 50),
+			expected: image.Rect(8, 8, 52, 52), // 5% margin added
+		},
+		{
+			name:     "Large rectangle",
+			bounds:   image.Rect(100, 200, 600, 800),
+			expected: image.Rect(75, 170, 625, 830), // 5% margin added
+		},
+		{
+			name:     "Zero size rectangle",
+			bounds:   image.Rect(0, 0, 0, 0),
+			expected: image.Rect(0, 0, 0, 0), // No margin as bounds are zero
+		},
+		{
+			name:     "Rectangle near origin",
+			bounds:   image.Rect(1, 1, 50, 50),
+			expected: image.Rect(0, 0, 52, 52), // Margin clipped at 0
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Run MarginBox
+			actual := MarginBox(tt.bounds, 0.05)
+
+			// Validate the bounding box
+			if actual != tt.expected {
+				t.Errorf("Expected %v, but got %v", tt.expected, actual)
+			}
+		})
+	}
 }
