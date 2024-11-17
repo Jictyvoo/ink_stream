@@ -32,6 +32,8 @@ func (step StepRescaleImage) PerformExec(state *pipeState, _ processOptions) (er
 	if step.isPixelArt {
 		drawInterpolator = draw.NearestNeighbor
 	}
+
+	// TODO: Check aspect ration to include expand dimensions if necessary
 	drawInterpolator.Scale(resized, resized.Bounds(), state.img, state.img.Bounds(), draw.Over, nil)
 
 	state.img = resized
