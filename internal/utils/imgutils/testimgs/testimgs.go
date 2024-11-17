@@ -4,6 +4,7 @@ import (
 	"bytes"
 	_ "embed"
 	"image"
+	"image/jpeg"
 	"image/png"
 )
 
@@ -38,5 +39,21 @@ var blackCircleWithTransparentBackground []byte
 
 func ImageBlackCircleWithTransparentBackground() image.Image {
 	img, _ := png.Decode(bytes.NewReader(blackCircleWithTransparentBackground))
+	return img
+}
+
+//go:embed generic_manga_page_image.jpg
+var genericMangaPageImage []byte
+
+func ImageGenericMangaPage() image.Image {
+	img, _ := jpeg.Decode(bytes.NewReader(genericMangaPageImage))
+	return img
+}
+
+//go:embed multi_color_square_image.png
+var multiColorSquareImage []byte
+
+func ImageMultiColorSquare() image.Image {
+	img, _ := png.Decode(bytes.NewReader(multiColorSquareImage))
 	return img
 }
