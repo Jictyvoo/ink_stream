@@ -116,15 +116,15 @@ func cutBoxBasedOn(
 	)
 
 	for range max(width, height) {
-		if colIndex < width {
+		if colIndex < width && colIndex >= 0 {
 			colIndex = valueChanger(
-				analysisSlices.column, colIndex, width,
+				analysisSlices.column, colIndex, height,
 				&valIndexes.x, &newValues[valIndexes.x].X, &loopModifier.X,
 			)
 		}
-		if rowIndex < height {
+		if rowIndex < height && rowIndex >= 0 {
 			rowIndex = valueChanger(
-				analysisSlices.row, rowIndex, height,
+				analysisSlices.row, rowIndex, width,
 				&valIndexes.y, &newValues[valIndexes.y].Y, &loopModifier.Y,
 			)
 		}
