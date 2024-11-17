@@ -1,5 +1,7 @@
 package deviceprof
 
+import "github.com/Jictyvoo/ink_stream/internal/utils/imgutils"
+
 type (
 	Resolution    struct{ Width, Height uint }
 	DeviceProfile struct {
@@ -9,6 +11,14 @@ type (
 		Scale      float64
 	}
 )
+
+func (res Resolution) Orientation() imgutils.ImageOrientation {
+	if res.Height >= res.Width {
+		return imgutils.OrientationPortrait
+	}
+
+	return imgutils.OrientationLandscape
+}
 
 var defaultProfiles = map[DeviceType]DeviceProfile{
 	DeviceKindle1:  {"Kindle 1", Resolution{600, 670}, Palette4, 1.8},

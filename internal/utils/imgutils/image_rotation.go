@@ -5,6 +5,13 @@ import (
 	"image/draw"
 )
 
+type ImageOrientation uint8
+
+const (
+	OrientationPortrait ImageOrientation = iota
+	OrientationLandscape
+)
+
 type RotationDegrees uint8
 
 const (
