@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"image"
 	"image/color"
+	"image/draw"
 	"math/rand/v2"
 )
 
@@ -38,4 +39,14 @@ func ImageFixtures(total uint8, seed []byte) []image.Image {
 	}
 
 	return resultImgs
+}
+
+// NewSolidImage creates a new image with the specified bounds and fills it with the given solid color.
+func NewSolidImage(bounds image.Rectangle, fillColor color.Color) image.Image {
+	img := image.NewRGBA(bounds)
+	col := image.NewUniform(fillColor)
+
+	// Draw the uniform color over the entire image
+	draw.Draw(img, bounds, col, image.Point{}, draw.Src)
+	return img
 }

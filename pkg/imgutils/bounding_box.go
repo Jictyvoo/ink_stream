@@ -130,6 +130,10 @@ func cutBoxBasedOn(
 		}
 	}
 
+	if newValues[0] == newValues[1] {
+		return originalBox
+	}
+
 	return image.Rect(newValues[0].X, newValues[0].Y, newValues[1].X, newValues[1].Y)
 }
 
