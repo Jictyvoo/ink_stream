@@ -21,6 +21,11 @@ func NewStepAutoContrast(cutLow, cutHigh float64) *StepAutoContrastImage {
 	}
 }
 
+func (step *StepAutoContrastImage) UpdateDrawFactory(fac imgutils.DrawImageFactory) {
+	step.baseImageStep.UpdateDrawFactory(fac)
+	step.gammaCorrect.UpdateDrawFactory(fac)
+}
+
 // AutoContrast applies autocontrast to an image.
 func (step StepAutoContrastImage) AutoContrast(img image.Image) image.Image {
 	bounds := img.Bounds()

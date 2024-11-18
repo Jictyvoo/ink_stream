@@ -27,7 +27,10 @@ type baseImageStep struct {
 }
 
 func (s *baseImageStep) drawImage(img image.Image, bounds image.Rectangle) draw.Image {
-	return s.fac.CreateDrawImage(img, bounds)
+	if s.fac != nil {
+		return s.fac.CreateDrawImage(img, bounds)
+	}
+	return imgutils.NewDrawFromImgColorModel(img, bounds)
 }
 
 func (s *baseImageStep) UpdateDrawFactory(fac imgutils.DrawImageFactory) {
