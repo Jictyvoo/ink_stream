@@ -1,9 +1,10 @@
-package imageparser
+package imgpipesteps
 
 import (
 	"image"
 	"testing"
 
+	"github.com/Jictyvoo/ink_stream/internal/imageparser"
 	"github.com/Jictyvoo/ink_stream/pkg/imgutils"
 )
 
@@ -55,8 +56,8 @@ func TestStepGammaCorrectionImage_PerformExec(t *testing.T) {
 		t.Run(tCase.name, func(t *testing.T) {
 			step := NewStepGammaCorrection()
 			var (
-				state = pipeState{img: tCase.inputImg}
-				opts  = processOptions{gamma: tCase.gammaValue}
+				state = imageparser.PipeState{Img: tCase.inputImg}
+				opts  = imageparser.ProcessOptions{Gamma: tCase.gammaValue}
 			)
 
 			// Perform grayscale conversion
@@ -65,7 +66,7 @@ func TestStepGammaCorrectionImage_PerformExec(t *testing.T) {
 			}
 
 			// Validate that the output matches the expected grayscale image
-			result := state.img
+			result := state.Img
 			if !imgutils.IsImageEqual(result, tCase.expectedImg) {
 				t.Errorf(
 					"expected: %#v, actual: %#v", tCase.expectedImg, result,

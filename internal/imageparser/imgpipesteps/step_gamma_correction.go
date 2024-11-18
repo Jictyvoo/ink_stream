@@ -1,21 +1,22 @@
-package imageparser
+package imgpipesteps
 
 import (
 	"image/color"
 	"math"
 
+	"github.com/Jictyvoo/ink_stream/internal/imageparser"
 	"github.com/Jictyvoo/ink_stream/pkg/imgutils"
 )
 
 var (
-	_ UnitStep = (*StepGammaCorrectionImage)(nil)
-	_ PipeStep = (*StepGammaCorrectionImage)(nil)
+	_ imageparser.UnitStep = (*StepGammaCorrectionImage)(nil)
+	_ imageparser.PipeStep = (*StepGammaCorrectionImage)(nil)
 )
 
 type StepGammaCorrectionImage struct {
 	lut   [256]uint8
 	gamma float64
-	baseImageStep
+	imageparser.BaseImageStep
 }
 
 func NewStepGammaCorrection() *StepGammaCorrectionImage {
@@ -51,21 +52,21 @@ func (step StepGammaCorrectionImage) lookupTable(gamma float64) [256]uint8 {
 }
 
 func (step StepGammaCorrectionImage) PerformExec(
-	state *pipeState, opts processOptions,
+	state *imageparser.PipeState, opts imageparser.ProcessOptions,
 ) (err error) {
-	bounds := state.img.Bounds()
-	newImg := step.drawImage(state.img, bounds)
-	if opts.gamma != 1 {
-		step.lut = step.lookupTable(opts.gamma)
+	bounds := state.Img.Bounds()
+	newImg := step.DrawImage(state.Img, bounds)
+	if opts.Gamma != 1 {
+		step.lut = step.lookupTable(opts.Gamma)
 	}
 
-	for x, y := range imgutils.Iterator(state.img) {
-		imgColor := state.img.At(x, y)
+	for x, y := range imgutils.Iterator(state.Img) {
+		imgColor := state.Img.At(x, y)
 		newColor := step.PixelStep(imgColor)
 		newImg.Set(x, y, newColor)
 	}
 
-	state.img = newImg
+	state.Img = newImg
 	return
 }
 

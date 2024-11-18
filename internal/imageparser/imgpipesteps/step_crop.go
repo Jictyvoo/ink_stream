@@ -1,20 +1,21 @@
-package imageparser
+package imgpipesteps
 
 import (
 	"image"
 	"image/color"
 	"image/draw"
 
+	"github.com/Jictyvoo/ink_stream/internal/imageparser"
 	"github.com/Jictyvoo/ink_stream/pkg/imgutils"
 )
 
-var _ PipeStep = (*StepCropRotateImage)(nil)
+var _ imageparser.PipeStep = (*StepCropRotateImage)(nil)
 
 type StepCropRotateImage struct {
 	palette     imgutils.ColorConverter
 	rotateImage bool
 	orientation imgutils.ImageOrientation
-	baseImageStep
+	imageparser.BaseImageStep
 }
 
 func NewStepCropRotate(
@@ -25,26 +26,29 @@ func NewStepCropRotate(
 		palette:       palette,
 		rotateImage:   rotate,
 		orientation:   orientation,
-		baseImageStep: baseImageStep{fac: imgutils.NewImageFactory(palette)},
+		BaseImageStep: imageparser.NewBaseImageStep(palette),
 	}
 }
 
-func (step StepCropRotateImage) PerformExec(state *pipeState, _ processOptions) (err error) {
+func (step StepCropRotateImage) PerformExec(
+	state *imageparser.PipeState,
+	_ imageparser.ProcessOptions,
+) (err error) {
 	// Step 1: Crop the image to exclude unnecessary parts and add margins
-	desiredBox := state.img.Bounds()
+	desiredBox := state.Img.Bounds()
 	// TODO: Include gaussian blur
-	croppedBox := imgutils.CropBox(state.img, step.palette, imgutils.BoxEliminateMinimumColor)
+	croppedBox := imgutils.CropBox(state.Img, step.palette, imgutils.BoxEliminateMinimumColor)
 	if croppedBox != desiredBox {
 		desiredBox = croppedBox
 	}
 
 	// Step 2: Check dimensions and apply logic based on width and height
-	state.img = step.cropImage(state.img, desiredBox)
-	newBounds := state.img.Bounds()
+	state.Img = step.cropImage(state.Img, desiredBox)
+	newBounds := state.Img.Bounds()
 	if step.orientation == imgutils.OrientationPortrait && newBounds.Dx() > newBounds.Dy() {
 		if step.rotateImage {
 			// Rotate the image if rotateImage is true
-			state.img = imgutils.RotateImage(state.img, imgutils.Rotation90Degrees)
+			state.Img = imgutils.RotateImage(state.Img, imgutils.Rotation90Degrees)
 		} else {
 			// Cut the image in half horizontally
 			midX := newBounds.Min.X + newBounds.Dx()/2
@@ -53,9 +57,9 @@ func (step StepCropRotateImage) PerformExec(state *pipeState, _ processOptions) 
 				right: image.Rect(midX, newBounds.Min.Y, newBounds.Max.X, newBounds.Max.Y),
 			}
 
-			originalImg := state.img
-			state.img = step.cropImage(originalImg, halfBounds.left)
-			state.img = step.cropImage(originalImg, halfBounds.right)
+			originalImg := state.Img
+			state.Img = step.cropImage(originalImg, halfBounds.left)
+			state.Img = step.cropImage(originalImg, halfBounds.right)
 		}
 	}
 

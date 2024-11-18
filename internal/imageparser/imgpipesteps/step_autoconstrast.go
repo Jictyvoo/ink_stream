@@ -1,18 +1,19 @@
-package imageparser
+package imgpipesteps
 
 import (
 	"image"
 	"image/color"
 
+	"github.com/Jictyvoo/ink_stream/internal/imageparser"
 	"github.com/Jictyvoo/ink_stream/pkg/imgutils"
 )
 
-var _ PipeStep = (*StepAutoContrastImage)(nil)
+var _ imageparser.PipeStep = (*StepAutoContrastImage)(nil)
 
 type StepAutoContrastImage struct {
 	cutoff       [2]float64
 	gammaCorrect StepGammaCorrectionImage
-	baseImageStep
+	imageparser.BaseImageStep
 }
 
 func NewStepAutoContrast(cutLow, cutHigh float64) *StepAutoContrastImage {
@@ -22,14 +23,14 @@ func NewStepAutoContrast(cutLow, cutHigh float64) *StepAutoContrastImage {
 }
 
 func (step *StepAutoContrastImage) UpdateDrawFactory(fac imgutils.DrawImageFactory) {
-	step.baseImageStep.UpdateDrawFactory(fac)
+	step.BaseImageStep.UpdateDrawFactory(fac)
 	step.gammaCorrect.UpdateDrawFactory(fac)
 }
 
 // AutoContrast applies autocontrast to an image.
 func (step StepAutoContrastImage) AutoContrast(img image.Image) image.Image {
 	bounds := img.Bounds()
-	newImg := step.drawImage(img, bounds)
+	newImg := step.DrawImage(img, bounds)
 	histogram := imgutils.CalculateHistogram(img)
 
 	// Apply cutoff to histogram
@@ -99,21 +100,24 @@ func (step StepAutoContrastImage) AutoContrast(img image.Image) image.Image {
 	return newImg
 }
 
-func (step StepAutoContrastImage) PerformExec(state *pipeState, opts processOptions) (err error) {
-	if opts.gamma < 0.1 {
-		if opts.applyColor {
-			opts.gamma = 1.0
+func (step StepAutoContrastImage) PerformExec(
+	state *imageparser.PipeState,
+	opts imageparser.ProcessOptions,
+) (err error) {
+	if opts.Gamma < 0.1 {
+		if opts.ApplyColor {
+			opts.Gamma = 1.0
 		}
 	}
 
-	if uint16(opts.gamma) == 1 || opts.gamma == 0 {
-		state.img = step.AutoContrast(state.img)
+	if uint16(opts.Gamma) == 1 || opts.Gamma == 0 {
+		state.Img = step.AutoContrast(state.Img)
 		return
 	}
 
 	if err = step.gammaCorrect.PerformExec(state, opts); err != nil {
 		return
 	}
-	state.img = step.AutoContrast(state.img)
+	state.Img = step.AutoContrast(state.Img)
 	return
 }

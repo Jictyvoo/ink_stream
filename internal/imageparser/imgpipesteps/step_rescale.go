@@ -1,19 +1,20 @@
-package imageparser
+package imgpipesteps
 
 import (
 	"image"
 
 	"golang.org/x/image/draw"
 
+	"github.com/Jictyvoo/ink_stream/internal/imageparser"
 	"github.com/Jictyvoo/ink_stream/pkg/deviceprof"
 )
 
-var _ PipeStep = (*StepRescaleImage)(nil)
+var _ imageparser.PipeStep = (*StepRescaleImage)(nil)
 
 type StepRescaleImage struct {
 	resolution deviceprof.Resolution
 	isPixelArt bool
-	baseImageStep
+	imageparser.BaseImageStep
 }
 
 func NewStepRescale(resolution deviceprof.Resolution) *StepRescaleImage {
@@ -24,9 +25,12 @@ func NewStepThumbnail() StepRescaleImage {
 	return StepRescaleImage{resolution: deviceprof.Resolution{Width: 300, Height: 470}}
 }
 
-func (step StepRescaleImage) PerformExec(state *pipeState, _ processOptions) (err error) {
+func (step StepRescaleImage) PerformExec(
+	state *imageparser.PipeState,
+	_ imageparser.ProcessOptions,
+) (err error) {
 	bounds := image.Rect(0, 0, int(step.resolution.Width), int(step.resolution.Height))
-	resized := step.drawImage(state.img, bounds)
+	resized := step.DrawImage(state.Img, bounds)
 
 	drawInterpolator := draw.ApproxBiLinear
 	if step.isPixelArt {
@@ -34,8 +38,8 @@ func (step StepRescaleImage) PerformExec(state *pipeState, _ processOptions) (er
 	}
 
 	// TODO: Check aspect ration to include expand dimensions if necessary
-	drawInterpolator.Scale(resized, resized.Bounds(), state.img, state.img.Bounds(), draw.Over, nil)
+	drawInterpolator.Scale(resized, resized.Bounds(), state.Img, state.Img.Bounds(), draw.Over, nil)
 
-	state.img = resized
+	state.Img = resized
 	return
 }

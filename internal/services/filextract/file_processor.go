@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/Jictyvoo/ink_stream/internal/imageparser"
+	"github.com/Jictyvoo/ink_stream/internal/imageparser/imgpipesteps"
 	"github.com/Jictyvoo/ink_stream/internal/services/filextract/cbxr"
 	"github.com/Jictyvoo/ink_stream/internal/services/outdirwriter"
 	"github.com/Jictyvoo/ink_stream/pkg/deviceprof"
@@ -40,9 +41,9 @@ func NewFileProcessorWorker(
 		profile:        targetProfile,
 		imgPipeline: imageparser.NewImagePipeline(
 			color.Palette(targetProfile.Palette),
-			imageparser.NewStepRescale(targetProfile.Resolution),
-			imageparser.NewStepGrayScale(),
-			imageparser.NewStepAutoContrast(0, 0),
+			imgpipesteps.NewStepRescale(targetProfile.Resolution),
+			imgpipesteps.NewStepGrayScale(),
+			imgpipesteps.NewStepAutoContrast(0, 0),
 		),
 	}
 }

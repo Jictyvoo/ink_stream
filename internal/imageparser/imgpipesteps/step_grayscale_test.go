@@ -1,9 +1,10 @@
-package imageparser
+package imgpipesteps
 
 import (
 	"image"
 	"testing"
 
+	"github.com/Jictyvoo/ink_stream/internal/imageparser"
 	"github.com/Jictyvoo/ink_stream/pkg/imgutils"
 )
 
@@ -45,8 +46,8 @@ func TestStepGrayScaleImage_PerformExec(t *testing.T) {
 		t.Run(tCase.name, func(t *testing.T) {
 			step := NewStepGrayScale()
 			var (
-				state = pipeState{img: tCase.inputImg}
-				opts  processOptions
+				state = imageparser.PipeState{Img: tCase.inputImg}
+				opts  imageparser.ProcessOptions
 			)
 
 			// Perform grayscale conversion
@@ -55,7 +56,7 @@ func TestStepGrayScaleImage_PerformExec(t *testing.T) {
 			}
 
 			// Validate that the output matches the expected grayscale image
-			result := state.img
+			result := state.Img
 			if !imgutils.IsImageEqual(result, tCase.expectedImg) {
 				t.Errorf(
 					"expected: %#v, actual: %#v", tCase.expectedImg, result,

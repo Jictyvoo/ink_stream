@@ -8,16 +8,16 @@ import (
 )
 
 type (
-	pipeState struct {
+	PipeState struct {
 		name string
-		img  image.Image
+		Img  image.Image
 	}
-	processOptions struct {
-		gamma      float64
-		applyColor bool
+	ProcessOptions struct {
+		Gamma      float64
+		ApplyColor bool
 	}
 	ImagePipeline struct {
-		opts             processOptions
+		opts             ProcessOptions
 		pixelSteps       []UnitStep
 		fullProcessSteps []PipeStep
 		drawFactory      imgutils.DrawImageFactory
@@ -60,7 +60,7 @@ func NewImagePipelineSplitStep(palette color.Palette, steps ...PipeStep) ImagePi
 }
 
 func (imgPipe ImagePipeline) Process(img image.Image) (resultImg image.Image, err error) {
-	state := pipeState{img: img}
+	state := PipeState{Img: img}
 	for _, step := range imgPipe.fullProcessSteps {
 		if err = step.PerformExec(&state, imgPipe.opts); err != nil {
 			return
@@ -69,8 +69,8 @@ func (imgPipe ImagePipeline) Process(img image.Image) (resultImg image.Image, er
 
 	// Check if it has pixel steps
 	if len(imgPipe.pixelSteps) > 0 {
-		img = state.img
-		newImage := imgPipe.drawFactory.CreateDrawImage(state.img, img.Bounds())
+		img = state.Img
+		newImage := imgPipe.drawFactory.CreateDrawImage(state.Img, img.Bounds())
 		for x, y := range imgutils.Iterator(img) {
 			oldColor := img.At(x, y)
 			for _, step := range imgPipe.pixelSteps {
@@ -79,9 +79,9 @@ func (imgPipe ImagePipeline) Process(img image.Image) (resultImg image.Image, er
 			newImage.Set(x, y, oldColor)
 		}
 
-		state.img = newImage
+		state.Img = newImage
 	}
 
-	resultImg = state.img
+	resultImg = state.Img
 	return
 }

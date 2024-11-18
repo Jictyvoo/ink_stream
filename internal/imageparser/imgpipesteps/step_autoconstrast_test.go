@@ -1,9 +1,10 @@
-package imageparser
+package imgpipesteps
 
 import (
 	"image"
 	"testing"
 
+	"github.com/Jictyvoo/ink_stream/internal/imageparser"
 	"github.com/Jictyvoo/ink_stream/pkg/imgutils"
 )
 
@@ -88,16 +89,16 @@ func TestStepAutoContrastImage_PerformExec(t *testing.T) {
 		t.Run(tCase.name, func(t *testing.T) {
 			step := NewStepAutoContrast(tCase.cutoff[0], tCase.cutoff[1])
 			var (
-				state = pipeState{img: tCase.inputImg}
-				opts  processOptions
+				state = imageparser.PipeState{Img: tCase.inputImg}
+				opts  imageparser.ProcessOptions
 			)
 
-			opts.gamma = tCase.gamma
+			opts.Gamma = tCase.gamma
 			if err := step.PerformExec(&state, opts); err != nil {
 				t.Fatalf("PerformExec: %v", err.Error())
 			}
 
-			result := state.img
+			result := state.Img
 			if !imgutils.IsImageEqual(result, tCase.expectedImg) {
 				t.Errorf(
 					"expected: %#v, actual: %#v", tCase.expectedImg, result,

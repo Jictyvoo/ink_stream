@@ -1,4 +1,4 @@
-package imageparser
+package imgpipesteps
 
 import (
 	_ "embed"
@@ -6,6 +6,7 @@ import (
 	"image/color"
 	"testing"
 
+	"github.com/Jictyvoo/ink_stream/internal/imageparser"
 	"github.com/Jictyvoo/ink_stream/pkg/imgutils"
 	"github.com/Jictyvoo/ink_stream/pkg/imgutils/testimgs"
 )
@@ -35,7 +36,7 @@ func TestStepCropRotateImage_PerformExec(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// Create a solid-colored test image
 			img := testimgs.NewSolidImage(tt.initialBounds, color.White)
-			state := &pipeState{img: img}
+			state := &imageparser.PipeState{Img: img}
 
 			// Instantiate the StepCropRotateImage step
 			step := NewStepCropRotate(
@@ -45,12 +46,12 @@ func TestStepCropRotateImage_PerformExec(t *testing.T) {
 			)
 
 			// Execute the step
-			if err := step.PerformExec(state, processOptions{}); err != nil {
+			if err := step.PerformExec(state, imageparser.ProcessOptions{}); err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}
 
 			// Validate the resulting image bounds
-			resultBounds := state.img.Bounds()
+			resultBounds := state.Img.Bounds()
 			if resultBounds != tt.expectedBounds {
 				t.Errorf(
 					"unexpected bounds: got %v, want %v",
