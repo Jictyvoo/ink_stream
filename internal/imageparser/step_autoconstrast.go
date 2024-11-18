@@ -4,7 +4,7 @@ import (
 	"image"
 	"image/color"
 
-	"github.com/Jictyvoo/ink_stream/internal/utils/imgutils"
+	"github.com/Jictyvoo/ink_stream/pkg/imgutils"
 )
 
 var _ PipeStep = (*StepAutoContrastImage)(nil)
@@ -30,7 +30,11 @@ func (step StepAutoContrastImage) AutoContrast(img image.Image) image.Image {
 	// Apply cutoff to histogram
 	if step.cutoff != [2]float64{} {
 		for i := range uint8(3) {
-			newChannel := imgutils.ApplyCutoff(histogram.Channel(i), step.cutoff[0], step.cutoff[1])
+			newChannel := imgutils.ApplyCutoff(
+				histogram.Channel(i),
+				step.cutoff[0],
+				step.cutoff[1],
+			)
 			histogram.Set(i, newChannel)
 		}
 	}

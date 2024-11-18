@@ -4,7 +4,7 @@ import (
 	"image/color"
 	"math"
 
-	"github.com/Jictyvoo/ink_stream/internal/utils/imgutils"
+	"github.com/Jictyvoo/ink_stream/pkg/imgutils"
 )
 
 var (

@@ -7,7 +7,7 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/Jictyvoo/ink_stream/internal/utils/imgutils/testimgs"
+	"github.com/Jictyvoo/ink_stream/pkg/imgutils/testimgs"
 )
 
 //go:embed image_compare_test.go

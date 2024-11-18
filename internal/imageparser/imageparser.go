@@ -5,7 +5,7 @@ import (
 	"image/color"
 	"image/draw"
 
-	"github.com/Jictyvoo/ink_stream/internal/utils/imgutils"
+	"github.com/Jictyvoo/ink_stream/pkg/imgutils"
 )
 
 type (

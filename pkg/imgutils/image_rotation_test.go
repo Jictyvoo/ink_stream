@@ -4,7 +4,7 @@ import (
 	"image/color"
 	"testing"
 
-	"github.com/Jictyvoo/ink_stream/internal/utils/imgutils/testimgs"
+	"github.com/Jictyvoo/ink_stream/pkg/imgutils/testimgs"
 )
 
 func TestRotateImage(t *testing.T) {

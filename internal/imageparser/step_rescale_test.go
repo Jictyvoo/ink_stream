@@ -5,9 +5,9 @@ import (
 	"image/color"
 	"testing"
 
-	"github.com/Jictyvoo/ink_stream/internal/utils/imgutils"
-	"github.com/Jictyvoo/ink_stream/internal/utils/imgutils/testimgs"
 	"github.com/Jictyvoo/ink_stream/pkg/deviceprof"
+	"github.com/Jictyvoo/ink_stream/pkg/imgutils"
+	"github.com/Jictyvoo/ink_stream/pkg/imgutils/testimgs"
 )
 
 func TestStepRescaleImage_PerformExec(t *testing.T) {

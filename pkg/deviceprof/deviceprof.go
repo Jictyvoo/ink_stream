@@ -1,6 +1,6 @@
 package deviceprof
 
-import "github.com/Jictyvoo/ink_stream/internal/utils/imgutils"
+import "github.com/Jictyvoo/ink_stream/pkg/imgutils"
 
 type (
 	Resolution    struct{ Width, Height uint }

@@ -4,7 +4,7 @@ import (
 	"image"
 	"testing"
 
-	"github.com/Jictyvoo/ink_stream/internal/utils/imgutils"
+	"github.com/Jictyvoo/ink_stream/pkg/imgutils"
 )
 
 func TestStepGammaCorrectionImage_PerformExec(t *testing.T) {

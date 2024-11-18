@@ -4,7 +4,7 @@ import (
 	"image"
 	"testing"
 
-	"github.com/Jictyvoo/ink_stream/internal/utils/imgutils/testimgs"
+	"github.com/Jictyvoo/ink_stream/pkg/imgutils/testimgs"
 )
 
 // TestCropBox tests the CropBox function
