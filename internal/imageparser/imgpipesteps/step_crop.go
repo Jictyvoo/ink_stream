@@ -15,6 +15,7 @@ type StepCropRotateImage struct {
 	palette     imgutils.ColorConverter
 	rotateImage bool
 	orientation imgutils.ImageOrientation
+	blurSubstep *StepApplyGaussianBlurImage
 	imageparser.BaseImageStep
 }
 
@@ -26,6 +27,7 @@ func NewStepCropRotate(
 		palette:       palette,
 		rotateImage:   rotate,
 		orientation:   orientation,
+		blurSubstep:   NewStepGaussianBlur(5),
 		BaseImageStep: imageparser.NewBaseImageStep(palette),
 	}
 }
@@ -36,14 +38,24 @@ func (step StepCropRotateImage) PerformExec(
 ) (err error) {
 	// Step 1: Crop the image to exclude unnecessary parts and add margins
 	desiredBox := state.Img.Bounds()
-	// TODO: Include gaussian blur
+	originalImage := state.Img
+	// Use gaussian blur to perform image crop
+	if err = step.blurSubstep.PerformExec(state, imageparser.ProcessOptions{}); err != nil {
+		state.Img = originalImage
+		return
+	}
 	croppedBox := imgutils.CropBox(state.Img, step.palette, imgutils.BoxEliminateMinimumColor)
 	if croppedBox != desiredBox {
-		desiredBox = croppedBox
+		// Prevent cropping if new dimensions are lower than 80% the original size
+		originalSize := [2]int{desiredBox.Dx(), desiredBox.Dy()}
+		newSize := [2]int{croppedBox.Dx(), croppedBox.Dy()}
+		if (newSize[0]*100)/originalSize[0] >= 80 && (newSize[1]*100)/originalSize[1] >= 80 {
+			desiredBox = croppedBox
+		}
 	}
 
 	// Step 2: Check dimensions and apply logic based on width and height
-	state.Img = step.cropImage(state.Img, desiredBox)
+	state.Img = step.cropImage(originalImage, desiredBox)
 	newBounds := state.Img.Bounds()
 	if step.orientation == imgutils.OrientationPortrait && newBounds.Dx() > newBounds.Dy() {
 		if step.rotateImage {
