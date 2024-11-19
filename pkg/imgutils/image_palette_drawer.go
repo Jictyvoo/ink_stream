@@ -7,15 +7,6 @@ import (
 )
 
 type (
-	ColorConverter interface {
-		Convert(c color.Color) color.Color
-	}
-	DrawImageFactory interface {
-		CreateDrawImage(img image.Image, bounds image.Rectangle) draw.Image
-	}
-)
-
-type (
 	ImagePaletteDrawer struct {
 		palette color.Palette
 		draw.Image

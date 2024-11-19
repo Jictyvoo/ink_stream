@@ -6,8 +6,6 @@ import (
 	"github.com/Jictyvoo/ink_stream/internal/utils"
 )
 
-const MaxPixelValue = (1 << 8) - 1
-
 type (
 	ChannelHistogram [MaxPixelValue + 1]uint32
 	ImageHistogram   struct {
