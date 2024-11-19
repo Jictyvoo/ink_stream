@@ -100,7 +100,7 @@ func cutBoxBasedOn(
 			*minMaxSel = min(1, *minMaxSel+1)
 			if workOnMinimum {
 				*modifier = -1
-				index = maxValue
+				index = len(valueSlice)
 			}
 		}
 
