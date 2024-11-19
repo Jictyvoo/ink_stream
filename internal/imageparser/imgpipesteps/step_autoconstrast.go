@@ -49,15 +49,7 @@ func (step StepAutoContrastImage) AutoContrast(img image.Image) image.Image {
 		// Determine minVal and maxVal values in the image
 		minVal, maxVal = histogram.HiloHistogram()
 		scale          [3]float64
-		clamp          = func(value float64) uint8 {
-			if value < 0 {
-				return 0
-			} else if value > imgutils.MaxPixelValue {
-				return imgutils.MaxPixelValue
-			}
-			return uint8(value)
-		}
-		lookupTable [3]imgutils.ChannelHistogram
+		lookupTable    [3]imgutils.ChannelHistogram
 	)
 
 	for i := range uint8(3) {
@@ -77,7 +69,7 @@ func (step StepAutoContrastImage) AutoContrast(img image.Image) image.Image {
 			for pixelIndex := 0; pixelIndex <= imgutils.MaxPixelValue; pixelIndex++ {
 				// Calculate the adjusted pixel value using the scale and offset
 				adjustedValue := float64(pixelIndex)*scale[i] + offset
-				lookupTable[i][pixelIndex] = uint32(clamp(adjustedValue))
+				lookupTable[i][pixelIndex] = uint32(imgutils.NormalizePixel(adjustedValue))
 			}
 		}
 	}

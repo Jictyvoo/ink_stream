@@ -18,7 +18,7 @@ const (
 )
 
 func NormalizePixel[T Number](value T) uint8 {
-	return uint8(min(MaxPixelValue, max(MinPixelValue, value)))
+	return min(MaxPixelValue, uint8(max(MinPixelValue, value)))
 }
 
 type (
