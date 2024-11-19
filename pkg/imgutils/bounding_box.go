@@ -97,7 +97,7 @@ func cutBoxBasedOn(
 		case uint64(maxValue):
 			*destination += *modifier
 		default: // No match, increment minMaxSel to start processing the opposite edge.
-			*minMaxSel = min(1, *minMaxSel+1)
+			*minMaxSel = min(2, *minMaxSel+1)
 			if workOnMinimum {
 				*modifier = -1
 				index = len(valueSlice)
@@ -116,13 +116,13 @@ func cutBoxBasedOn(
 	)
 
 	for range max(width, height) {
-		if colIndex < width && colIndex >= 0 {
+		if colIndex < width && colIndex >= 0 && valIndexes.x <= 1 {
 			colIndex = valueChanger(
 				analysisSlices.column, colIndex, height,
 				&valIndexes.x, &newValues[valIndexes.x].X, &loopModifier.X,
 			)
 		}
-		if rowIndex < height && rowIndex >= 0 {
+		if rowIndex < height && rowIndex >= 0 && valIndexes.y <= 1 {
 			rowIndex = valueChanger(
 				analysisSlices.row, rowIndex, width,
 				&valIndexes.y, &newValues[valIndexes.y].Y, &loopModifier.Y,
