@@ -37,25 +37,32 @@ func (step StepCropRotateImage) PerformExec(
 	_ imageparser.ProcessOptions,
 ) (err error) {
 	// Step 1: Crop the image to exclude unnecessary parts and add margins
-	desiredBox := state.Img.Bounds()
 	originalImage := state.Img
+	originalBox := originalImage.Bounds()
+	desiredBox := originalBox
 	// Use gaussian blur to perform image crop
 	if err = step.blurSubstep.PerformExec(state, imageparser.ProcessOptions{}); err != nil {
 		state.Img = originalImage
 		return
 	}
-	croppedBox := imgutils.CropBox(state.Img, step.palette, imgutils.BoxEliminateMinimumColor)
+
+	blurredImg := state.Img
+	state.Img = originalImage
+	croppedBox := imgutils.CropBox(blurredImg, step.palette, imgutils.BoxEliminateMinimumColor)
 	if croppedBox != desiredBox {
 		// Prevent cropping if new dimensions are lower than 80% the original size
 		originalSize := [2]int{desiredBox.Dx(), desiredBox.Dy()}
 		newSize := [2]int{croppedBox.Dx(), croppedBox.Dy()}
 		if (newSize[0]*100)/originalSize[0] >= 80 && (newSize[1]*100)/originalSize[1] >= 80 {
-			desiredBox = croppedBox
+			// Include a little margin on croppedBox
+			desiredBox = step.wrapInMargin(croppedBox, originalBox.Max)
 		}
 	}
 
 	// Step 2: Check dimensions and apply logic based on width and height
-	state.Img = step.cropImage(originalImage, desiredBox)
+	if desiredBox != originalBox {
+		state.Img = step.cropImage(state.Img, desiredBox)
+	}
 	newBounds := state.Img.Bounds()
 	if step.orientation == imgutils.OrientationPortrait && newBounds.Dx() > newBounds.Dy() {
 		if step.rotateImage {
@@ -76,6 +83,19 @@ func (step StepCropRotateImage) PerformExec(
 	}
 
 	return
+}
+
+func (step StepCropRotateImage) wrapInMargin(
+	croppedBox image.Rectangle, limits image.Point,
+) image.Rectangle {
+	desiredBox := imgutils.MarginBox(croppedBox, 0.016)
+	if desiredBox.Max.X > limits.X {
+		desiredBox.Max.X = limits.X
+	}
+	if desiredBox.Max.Y > limits.Y {
+		desiredBox.Max.Y = limits.Y
+	}
+	return desiredBox
 }
 
 // Helper function: Crop an image to the given rectangle

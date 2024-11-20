@@ -74,7 +74,7 @@ func TestMarginBox(t *testing.T) {
 		{
 			name:     "Large rectangle",
 			bounds:   image.Rect(100, 200, 600, 800),
-			expected: image.Rect(75, 170, 625, 830), // 5% margin added
+			expected: image.Rect(75, 175, 625, 825), // 5% margin added
 		},
 		{
 			name:     "Zero size rectangle",

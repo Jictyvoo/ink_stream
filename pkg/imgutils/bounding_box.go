@@ -141,12 +141,12 @@ func MarginBox(bounds image.Rectangle, percentage float64) image.Rectangle {
 	width, height := bounds.Dx(), bounds.Dy()
 
 	// Calculate minimum and maximum margins
-	marginSize := image.Pt(int(percentage*float64(width)+0.5), int(percentage*float64(height)+0.5))
+	marginSize := min(int(percentage*float64(width)), int(percentage*float64(height)))
 
 	boundingBox := image.Rect(
-		max(0, min(bounds.Min.X-marginSize.X, bounds.Min.X)),
-		max(0, min(bounds.Min.Y-marginSize.Y, bounds.Min.Y)),
-		bounds.Max.X+marginSize.X, bounds.Max.Y+marginSize.Y,
+		max(0, min(bounds.Min.X-marginSize, bounds.Min.X)),
+		max(0, min(bounds.Min.Y-marginSize, bounds.Min.Y)),
+		bounds.Max.X+marginSize, bounds.Max.Y+marginSize,
 	)
 
 	return boundingBox
