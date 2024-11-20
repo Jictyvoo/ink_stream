@@ -7,6 +7,7 @@ require (
 	github.com/mholt/archives v0.1.3
 	github.com/pdfcpu/pdfcpu v0.11.0
 	golang.org/x/image v0.30.0
+	gocv.io/x/gocv v0.39.0
 )
 
 require (
