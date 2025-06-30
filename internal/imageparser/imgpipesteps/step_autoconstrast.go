@@ -30,7 +30,7 @@ func (step *StepAutoContrastImage) UpdateDrawFactory(fac imgutils.DrawImageFacto
 // AutoContrast applies autocontrast to an image.
 func (step StepAutoContrastImage) AutoContrast(img image.Image) image.Image {
 	bounds := img.Bounds()
-	newImg := step.DrawImage(img, bounds)
+	newImg := step.DrawImage(img.ColorModel(), bounds)
 	histogram := imgutils.CalculateHistogram(img)
 
 	// Apply cutoff to histogram

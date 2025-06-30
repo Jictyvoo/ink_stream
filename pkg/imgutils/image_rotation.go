@@ -28,10 +28,13 @@ func RotateImage(img image.Image, degrees RotationDegrees) image.Image {
 	switch degrees {
 	case Rotation90Degrees, Rotation270Degrees:
 		// Swap width and height for 90 or 270 degrees
-		rotated = NewDrawFromImgColorModel(img, image.Rect(0, 0, bounds.Dy(), bounds.Dx()))
+		rotated = NewDrawFromImgColorModel(
+			img.ColorModel(),
+			image.Rect(0, 0, bounds.Dy(), bounds.Dx()),
+		)
 	default:
 		// Keep the same dimensions for 180 degrees
-		rotated = NewDrawFromImgColorModel(img, bounds)
+		rotated = NewDrawFromImgColorModel(img.ColorModel(), bounds)
 	}
 
 	// Rotate each pixel

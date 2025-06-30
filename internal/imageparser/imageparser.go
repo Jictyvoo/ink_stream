@@ -35,11 +35,11 @@ func (s *BaseImageStep) privateInternalStep() {
 	// Do nothing, this function only exists to make sure that all types compose this struct
 }
 
-func (s *BaseImageStep) DrawImage(img image.Image, bounds image.Rectangle) draw.Image {
+func (s *BaseImageStep) DrawImage(colorModel color.Model, bounds image.Rectangle) draw.Image {
 	if s.fac != nil {
-		return s.fac.CreateDrawImage(img, bounds)
+		return s.fac.CreateDrawImage(colorModel, bounds)
 	}
-	return imgutils.NewDrawFromImgColorModel(img, bounds)
+	return imgutils.NewDrawFromImgColorModel(colorModel, bounds)
 }
 
 func (s *BaseImageStep) UpdateDrawFactory(fac imgutils.DrawImageFactory) {

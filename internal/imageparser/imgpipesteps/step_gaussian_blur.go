@@ -44,7 +44,7 @@ func (step StepApplyGaussianBlurImage) PerformExec(
 
 	img := state.Img
 	bounds := img.Bounds()
-	blurredImg := step.DrawImage(img, bounds)
+	blurredImg := step.DrawImage(img.ColorModel(), bounds)
 
 	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
 		for x := bounds.Min.X; x < bounds.Max.X; x++ {

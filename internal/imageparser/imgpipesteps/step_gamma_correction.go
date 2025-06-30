@@ -50,7 +50,7 @@ func (step StepGammaCorrectionImage) PerformExec(
 	state *imageparser.PipeState, opts imageparser.ProcessOptions,
 ) (err error) {
 	bounds := state.Img.Bounds()
-	newImg := step.DrawImage(state.Img, bounds)
+	newImg := step.DrawImage(state.Img.ColorModel(), bounds)
 	if opts.Gamma != 1 {
 		step.lut = step.lookupTable(opts.Gamma)
 	}

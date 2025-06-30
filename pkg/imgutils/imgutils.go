@@ -26,6 +26,6 @@ type (
 		Convert(c color.Color) color.Color
 	}
 	DrawImageFactory interface {
-		CreateDrawImage(img image.Image, bounds image.Rectangle) draw.Image
+		CreateDrawImage(colorModel color.Model, bounds image.Rectangle) draw.Image
 	}
 )

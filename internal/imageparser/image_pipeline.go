@@ -70,7 +70,7 @@ func (imgPipe ImagePipeline) Process(img image.Image) (resultImg image.Image, er
 	// Check if it has pixel steps
 	if len(imgPipe.pixelSteps) > 0 {
 		img = state.Img
-		newImage := imgPipe.drawFactory.CreateDrawImage(state.Img, img.Bounds())
+		newImage := imgPipe.drawFactory.CreateDrawImage(state.Img.ColorModel(), img.Bounds())
 		for x, y := range imgutils.Iterator(img) {
 			oldColor := img.At(x, y)
 			for _, step := range imgPipe.pixelSteps {

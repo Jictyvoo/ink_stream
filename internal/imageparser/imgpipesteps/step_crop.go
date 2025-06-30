@@ -100,7 +100,7 @@ func (step StepCropRotateImage) wrapInMargin(
 
 // Helper function: Crop an image to the given rectangle
 func (step StepCropRotateImage) cropImage(img image.Image, rect image.Rectangle) image.Image {
-	cropped := imgutils.NewDrawFromImgColorModel(img, rect)
+	cropped := imgutils.NewDrawFromImgColorModel(img.ColorModel(), rect)
 	draw.Draw(cropped, rect, img, rect.Min, draw.Src)
 	return cropped
 }
