@@ -43,3 +43,38 @@ func (step StepRescaleImage) PerformExec(
 	state.Img = resized
 	return
 }
+
+func (step StepRescaleImage) calculateNewDimensions(
+	bounds image.Rectangle,
+) (margins struct{ w, h uint }) {
+	actualWidth := uint(bounds.Dx())
+	actualHeight := uint(bounds.Dy())
+
+	desiredWidth := step.resolution.Width
+	desiredHeight := step.resolution.Height
+
+	// Take some edge cases before floating calculation
+	{
+		if actualWidth == 0 && actualHeight == 0 {
+			margins.w = desiredWidth
+			margins.h = desiredHeight
+			return
+		}
+	}
+
+	actualAspect := float64(actualWidth) / float64(actualHeight)
+	desiredAspect := float64(desiredWidth) / float64(desiredHeight)
+
+	if actualAspect > desiredAspect {
+		// Image is too wide, need to add height (top/bottom padding)
+		newHeight := float64(actualWidth) / desiredAspect
+		margins.h = uint(newHeight - float64(actualHeight))
+	} else if actualAspect < desiredAspect {
+		// Image is too tall, need to add width (left/right padding)
+		newWidth := float64(actualHeight) * desiredAspect
+		margins.w = uint(newWidth - float64(actualWidth))
+	}
+	// else: aspect ratios match; no margin needed
+
+	return
+}
