@@ -3,36 +3,30 @@ package imgpipesteps
 import (
 	"image"
 	"image/color"
-	"image/draw"
 
 	"github.com/Jictyvoo/ink_stream/internal/imageparser"
 	"github.com/Jictyvoo/ink_stream/pkg/imgutils"
 )
 
-var _ imageparser.PipeStep = (*StepCropRotateImage)(nil)
+var _ imageparser.PipeStep = (*StepAutoCropImage)(nil)
 
-type StepCropRotateImage struct {
+type StepAutoCropImage struct {
 	palette     imgutils.ColorConverter
-	rotateImage bool
-	orientation imgutils.ImageOrientation
 	blurSubstep *StepApplyGaussianBlurImage
 	imageparser.BaseImageStep
 }
 
-func NewStepCropRotate(
-	rotate bool, palette color.Palette,
-	orientation imgutils.ImageOrientation,
-) *StepCropRotateImage {
-	return &StepCropRotateImage{
+func NewStepAutoCrop(
+	palette color.Palette,
+) *StepAutoCropImage {
+	return &StepAutoCropImage{
 		palette:       palette,
-		rotateImage:   rotate,
-		orientation:   orientation,
 		blurSubstep:   NewStepGaussianBlur(5),
 		BaseImageStep: imageparser.NewBaseImageStep(palette),
 	}
 }
 
-func (step StepCropRotateImage) PerformExec(
+func (step StepAutoCropImage) PerformExec(
 	state *imageparser.PipeState,
 	_ imageparser.ProcessOptions,
 ) (err error) {
@@ -61,31 +55,13 @@ func (step StepCropRotateImage) PerformExec(
 
 	// Step 2: Check dimensions and apply logic based on width and height
 	if desiredBox != originalBox {
-		state.Img = step.cropImage(state.Img, desiredBox)
-	}
-	newBounds := state.Img.Bounds()
-	if step.orientation == imgutils.OrientationPortrait && newBounds.Dx() > newBounds.Dy() {
-		if step.rotateImage {
-			// Rotate the image if rotateImage is true
-			state.Img = imgutils.RotateImage(state.Img, imgutils.Rotation90Degrees)
-		} else {
-			// Cut the image in half horizontally
-			midX := newBounds.Min.X + newBounds.Dx()/2
-			halfBounds := struct{ left, right image.Rectangle }{
-				left:  image.Rect(newBounds.Min.X, newBounds.Min.Y, midX, newBounds.Max.Y),
-				right: image.Rect(midX, newBounds.Min.Y, newBounds.Max.X, newBounds.Max.Y),
-			}
-
-			originalImg := state.Img
-			state.Img = step.cropImage(originalImg, halfBounds.left)
-			state.Img = step.cropImage(originalImg, halfBounds.right)
-		}
+		state.Img = imgutils.CropImage(state.Img, desiredBox)
 	}
 
 	return
 }
 
-func (step StepCropRotateImage) wrapInMargin(
+func (step StepAutoCropImage) wrapInMargin(
 	croppedBox image.Rectangle, limits image.Point,
 ) image.Rectangle {
 	desiredBox := imgutils.MarginBox(croppedBox, 0.016)
@@ -96,11 +72,4 @@ func (step StepCropRotateImage) wrapInMargin(
 		desiredBox.Max.Y = limits.Y
 	}
 	return desiredBox
-}
-
-// Helper function: Crop an image to the given rectangle
-func (step StepCropRotateImage) cropImage(img image.Image, rect image.Rectangle) image.Image {
-	cropped := imgutils.NewDrawFromImgColorModel(img.ColorModel(), rect)
-	draw.Draw(cropped, rect, img, rect.Min, draw.Src)
-	return cropped
 }

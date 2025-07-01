@@ -37,3 +37,9 @@ type Margins[T any] struct {
 func FillImageRegionWithColor(img draw.Image, region image.Rectangle, col color.Color) {
 	draw.Draw(img, region, &image.Uniform{C: col}, image.Point{}, draw.Src)
 }
+
+func CropImage(img image.Image, rect image.Rectangle) image.Image {
+	cropped := NewDrawFromImgColorModel(img.ColorModel(), rect)
+	draw.Draw(cropped, rect, img, rect.Min, draw.Src)
+	return cropped
+}

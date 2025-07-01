@@ -35,7 +35,8 @@ func NewFileProcessorWorker(
 		profile:        targetProfile,
 		imgPipeline: imageparser.NewImagePipeline(
 			color.Palette(targetProfile.Palette),
-			imgpipesteps.NewStepCropRotate(
+			imgpipesteps.NewStepAutoCrop(color.Palette{color.Black, color.White}),
+			imgpipesteps.NewStepCropOrRotate(
 				true, color.Palette(targetProfile.Palette),
 				targetProfile.Resolution.Orientation(),
 			),

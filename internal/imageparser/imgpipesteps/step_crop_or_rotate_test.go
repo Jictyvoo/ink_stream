@@ -11,7 +11,7 @@ import (
 	"github.com/Jictyvoo/ink_stream/pkg/imgutils/testimgs"
 )
 
-func TestStepCropRotateImage_PerformExec(t *testing.T) {
+func TestStepCropOrRotateImage_PerformExec(t *testing.T) {
 	tests := []struct {
 		name           string
 		initialBounds  image.Rectangle
@@ -38,8 +38,8 @@ func TestStepCropRotateImage_PerformExec(t *testing.T) {
 			img := testimgs.NewSolidImage(tt.initialBounds, color.White)
 			state := &imageparser.PipeState{Img: img}
 
-			// Instantiate the StepCropRotateImage step
-			step := NewStepCropRotate(
+			// Instantiate the StepCropOrRotateImage step
+			step := NewStepCropOrRotate(
 				tt.rotateImage,
 				color.Palette{color.Black, color.White},
 				imgutils.OrientationPortrait,
