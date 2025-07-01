@@ -45,8 +45,10 @@ func (step StepCropOrRotateImage) PerformExec(
 			}
 
 			originalImg := state.Img
-			state.Img = imgutils.CropImage(originalImg, halfBounds.left)
-			state.Img = imgutils.CropImage(originalImg, halfBounds.right)
+			state.SubImages = []image.Image{
+				imgutils.CropImage(originalImg, halfBounds.left),
+				imgutils.CropImage(originalImg, halfBounds.right),
+			}
 		}
 	}
 

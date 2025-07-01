@@ -37,7 +37,7 @@ func NewFileProcessorWorker(
 			color.Palette(targetProfile.Palette),
 			imgpipesteps.NewStepAutoCrop(color.Palette{color.Black, color.White}),
 			imgpipesteps.NewStepCropOrRotate(
-				true, color.Palette(targetProfile.Palette),
+				false, color.Palette(targetProfile.Palette),
 				targetProfile.Resolution.Orientation(),
 			),
 			imgpipesteps.NewStepRescale(targetProfile.Resolution),
