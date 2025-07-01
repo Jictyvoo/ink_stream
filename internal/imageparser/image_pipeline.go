@@ -9,8 +9,9 @@ import (
 
 type (
 	PipeState struct {
-		name string
-		Img  image.Image
+		name      string
+		Img       image.Image
+		SubImages []image.Image
 	}
 	ProcessOptions struct {
 		Gamma      float64
@@ -59,10 +60,16 @@ func NewImagePipelineSplitStep(palette color.Palette, steps ...PipeStep) ImagePi
 	return imgPipe
 }
 
-func (imgPipe ImagePipeline) Process(img image.Image) (resultImg image.Image, err error) {
+func (imgPipe ImagePipeline) processImage(
+	img image.Image,
+) (resultImg image.Image, subImages []image.Image, err error) {
 	state := PipeState{Img: img}
 	for _, step := range imgPipe.fullProcessSteps {
 		if err = step.PerformExec(&state, imgPipe.opts); err != nil {
+			return
+		}
+		if len(state.SubImages) > 0 {
+			subImages = append(subImages, state.SubImages...)
 			return
 		}
 	}
@@ -83,5 +90,23 @@ func (imgPipe ImagePipeline) Process(img image.Image) (resultImg image.Image, er
 	}
 
 	resultImg = state.Img
+	return
+}
+
+func (imgPipe ImagePipeline) Process(img image.Image) (outputImgs []image.Image, err error) {
+	imgSlice := []image.Image{img}
+	for index := 0; index < len(imgSlice); index++ {
+		singleImage, subImages, processErr := imgPipe.processImage(imgSlice[index])
+		if processErr != nil {
+			return nil, err
+		}
+
+		if singleImage != nil {
+			outputImgs = append(outputImgs, singleImage)
+		}
+
+		imgSlice = append(imgSlice, subImages...)
+	}
+
 	return
 }

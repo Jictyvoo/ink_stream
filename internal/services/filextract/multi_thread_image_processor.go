@@ -7,6 +7,7 @@ import (
 	"io"
 	"log/slog"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -71,19 +72,24 @@ func (mtip *MultiThreadImageProcessor) workerHandl() {
 }
 
 func (mtip *MultiThreadImageProcessor) run(fileName string, data []byte) (err error) {
-	var decodedImg, finalImg image.Image
+	var decodedImg image.Image
 	if decodedImg, _, err = image.Decode(bytes.NewReader(data)); err != nil {
 		return err
 	}
 
-	finalImg, err = mtip.imgPipeline.Process(decodedImg)
-	if err != nil {
+	var finalImgList []image.Image
+	if finalImgList, err = mtip.imgPipeline.Process(decodedImg); err != nil {
 		return
 	}
 
-	err = mtip.fileWriter.Handler(fileName+".jpeg", func(writer io.Writer) error {
-		return jpeg.Encode(writer, finalImg, &jpeg.Options{Quality: 85})
-	})
+	for index, img := range finalImgList {
+		err = mtip.fileWriter.Handler(
+			fileName+"__"+strconv.Itoa(index)+".jpeg",
+			func(writer io.Writer) error {
+				return jpeg.Encode(writer, img, &jpeg.Options{Quality: 85})
+			},
+		)
+	}
 
 	return
 }
