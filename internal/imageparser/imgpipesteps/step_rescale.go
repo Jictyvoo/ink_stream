@@ -30,7 +30,7 @@ func (step StepRescaleImage) PerformExec(
 	state *imageparser.PipeState,
 	_ imageparser.ProcessOptions,
 ) (err error) {
-	paddedImage := step.wrapImgWithMargins(state.Img)
+	// paddedImage := step.wrapImgWithMargins(state.Img) // FIXME: Its currently broken due to crop stage bounding box
 
 	// Now resize the padded image to target resolution
 	bounds := image.Rect(0, 0, int(step.resolution.Width), int(step.resolution.Height))
@@ -43,7 +43,7 @@ func (step StepRescaleImage) PerformExec(
 
 	drawInterpolator.Scale(
 		resized, resized.Bounds(),
-		paddedImage, paddedImage.Bounds(),
+		state.Img, state.Img.Bounds(),
 		draw.Over, nil,
 	)
 
