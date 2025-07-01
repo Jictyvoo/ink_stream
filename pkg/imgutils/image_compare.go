@@ -33,3 +33,15 @@ func Iterator(input image.Image) iter.Seq2[int, int] {
 		}
 	}
 }
+
+func RegionIterator(region image.Rectangle) iter.Seq2[int, int] {
+	return func(yield func(int, int) bool) {
+		for y := region.Min.Y; y < region.Max.Y; y++ {
+			for x := region.Min.X; x < region.Max.X; x++ {
+				if !yield(x, y) {
+					return
+				}
+			}
+		}
+	}
+}
