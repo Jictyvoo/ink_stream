@@ -50,3 +50,29 @@ func NewSolidImage(bounds image.Rectangle, fillColor color.Color) image.Image {
 	draw.Draw(img, bounds, col, image.Point{}, draw.Src)
 	return img
 }
+
+// NewBorderedImage creates an image filled with a background color,
+// and a central content area (inside the given margins) filled with a foreground color.
+func NewBorderedImage(
+	imgRect image.Rectangle,
+	top, bottom, left, right int,
+	bg, fg color.Color,
+) image.Image {
+	img := image.NewNRGBA(imgRect)
+
+	// Fill entire image with background color
+	draw.Draw(img, imgRect, image.NewUniform(bg), image.Point{}, draw.Src)
+
+	// Define the content rectangle based on margins
+	contentRect := image.Rect(
+		imgRect.Min.X+left,
+		imgRect.Min.Y+top,
+		imgRect.Max.X-right,
+		imgRect.Max.Y-bottom,
+	)
+
+	// Fill content area with foreground color
+	draw.Draw(img, contentRect, image.NewUniform(fg), image.Point{}, draw.Src)
+
+	return img
+}
