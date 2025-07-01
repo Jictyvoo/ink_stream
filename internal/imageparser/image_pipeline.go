@@ -105,6 +105,9 @@ func (imgPipe ImagePipeline) Process(img image.Image) (outputImgs []image.Image,
 			outputImgs = append(outputImgs, singleImage)
 		}
 
+		if index >= len(imgSlice)-1 {
+			clear(imgSlice) // Try to free the memory
+		}
 		imgSlice = append(imgSlice, subImages...)
 	}
 

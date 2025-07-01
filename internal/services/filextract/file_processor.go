@@ -40,7 +40,7 @@ func NewFileProcessorWorker(
 				false, color.Palette(targetProfile.Palette),
 				targetProfile.Resolution.Orientation(),
 			),
-			imgpipesteps.NewStepRescale(targetProfile.Resolution),
+			imgpipesteps.NewStepRescale(targetProfile.Resolution, false),
 			imgpipesteps.NewStepGrayScale(),
 			imgpipesteps.NewStepAutoContrast(0, 0),
 		),

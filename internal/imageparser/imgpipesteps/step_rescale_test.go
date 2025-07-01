@@ -69,7 +69,7 @@ func TestStepRescaleImage_PerformExec(t *testing.T) {
 	}
 	for _, tCase := range testCases {
 		t.Run(tCase.name, func(t *testing.T) {
-			step := NewStepRescale(tCase.targetSize)
+			step := NewStepRescale(tCase.targetSize, false)
 			mockImage := func(size deviceprof.Resolution, fillValue color.Color) image.Image {
 				img := image.NewRGBA(
 					image.Rect(0, 0, int(size.Width), int(size.Height)),
@@ -161,7 +161,7 @@ func TestCalculateNewDimensions(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			step := NewStepRescale(tt.targetResolution)
+			step := NewStepRescale(tt.targetResolution, false)
 			result := step.calculateNewDimensions(
 				image.Rect(0, 0, tt.inputWidth, tt.inputHeight),
 			)

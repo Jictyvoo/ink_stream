@@ -30,8 +30,24 @@ type (
 	}
 )
 
-type Margins[T any] struct {
+type Margins[T comparable] struct {
 	Top, Bottom, Left, Right T
+}
+
+func (c *Margins[T]) UpdateNonEmpty(other Margins[T]) {
+	var defaultValue T
+	if c.Left == defaultValue {
+		c.Left = other.Left
+	}
+	if c.Right == defaultValue {
+		c.Right = other.Right
+	}
+	if c.Bottom == defaultValue {
+		c.Bottom = other.Bottom
+	}
+	if c.Top == defaultValue {
+		c.Top = other.Top
+	}
 }
 
 func FillImageRegionWithColor(img draw.Image, region image.Rectangle, col color.Color) {
