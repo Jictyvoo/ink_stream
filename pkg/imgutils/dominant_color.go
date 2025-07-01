@@ -57,3 +57,40 @@ func DominantColorInRegion(
 	// Find nearest color in palette to average
 	return palette.Convert(avg)
 }
+
+func ImageMarginDominantColor(
+	inputImg image.Image, xMargin, yMargin uint32, percentage uint8,
+) (dominantColors Margins[color.Color]) {
+	bounds := inputImg.Bounds()
+	imageRes := struct{ Width, Height int }{
+		Width:  bounds.Dx(),
+		Height: bounds.Dy(),
+	}
+	// Get dominant colors per margin
+	if yMargin > 0 {
+		heightRange := (imageRes.Height * int(percentage)) / 100 // ?% of the height
+		if heightRange <= 0 {                                    // Fallback case
+			heightRange = imageRes.Height
+		}
+		dominantColors.Top = DominantColorInRegion(
+			inputImg, image.Rect(0, 0, imageRes.Width, heightRange),
+		)
+		dominantColors.Bottom = DominantColorInRegion(
+			inputImg, image.Rect(0, imageRes.Height-heightRange, imageRes.Width, imageRes.Height),
+		)
+	}
+	if xMargin > 0 {
+		widthRange := (imageRes.Width * int(percentage)) / 100 // ?% of the width
+		if widthRange <= 0 {                                   // Fallback case
+			widthRange = imageRes.Width
+		}
+		dominantColors.Left = DominantColorInRegion(
+			inputImg, image.Rect(0, 0, widthRange, imageRes.Height),
+		)
+		dominantColors.Right = DominantColorInRegion(
+			inputImg, image.Rect(imageRes.Width-widthRange, 0, imageRes.Width, imageRes.Height),
+		)
+	}
+
+	return
+}

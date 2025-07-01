@@ -29,3 +29,11 @@ type (
 		CreateDrawImage(colorModel color.Model, bounds image.Rectangle) draw.Image
 	}
 )
+
+type Margins[T any] struct {
+	Top, Bottom, Left, Right T
+}
+
+func FillImageRegionWithColor(img draw.Image, region image.Rectangle, col color.Color) {
+	draw.Draw(img, region, &image.Uniform{C: col}, image.Point{}, draw.Src)
+}

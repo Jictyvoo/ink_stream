@@ -82,3 +82,58 @@ func TestDominantColorInRegion(t *testing.T) {
 		})
 	}
 }
+
+func TestImageMarginDominantColor(t *testing.T) {
+	expected := Margins[color.Color]{
+		Top:    color.NRGBA{R: 255, A: 255},         // Red
+		Bottom: color.NRGBA{G: 255, A: 255},         // Green
+		Left:   color.NRGBA{B: 255, A: 255},         // Blue
+		Right:  color.NRGBA{R: 255, G: 255, A: 255}, // Yellow
+	}
+
+	img := func() image.Image {
+		drawImg := image.NewNRGBA(image.Rect(0, 0, 100, 100))
+
+		// Fill whole image with white (background)
+		FillImageRegionWithColor(
+			drawImg,
+			image.Rect(0, 0, 100, 100),
+			color.NRGBA{R: 255, G: 255, B: 255, A: 255},
+		)
+
+		// Top 5% = red
+		for x, y := range RegionIterator(image.Rect(0, 0, 100, 5)) {
+			drawImg.Set(x, y, expected.Top)
+		}
+
+		// Bottom 5% = green
+		for x, y := range RegionIterator(image.Rect(0, 95, 100, 100)) {
+			drawImg.Set(x, y, expected.Bottom)
+		}
+
+		// Left 5% = blue
+		for x, y := range RegionIterator(image.Rect(0, 5, 5, 100)) {
+			drawImg.Set(x, y, expected.Left)
+		}
+
+		// Right 5% = yellow
+		for x, y := range RegionIterator(image.Rect(95, 0, 100, 95)) {
+			drawImg.Set(x, y, expected.Right)
+		}
+
+		return drawImg
+	}()
+	result := ImageMarginDominantColor(img, 10, 10, 5) // 5% margins
+
+	// Comparison helper
+	assertColorEqual := func(name string, got, want color.Color) {
+		if got != want {
+			t.Errorf("%s: got %v, want %v", name, got, want)
+		}
+	}
+
+	assertColorEqual("Top", result.Top, expected.Top)
+	assertColorEqual("Bottom", result.Bottom, expected.Bottom)
+	assertColorEqual("Left", result.Left, expected.Left)
+	assertColorEqual("Right", result.Right, expected.Right)
+}
