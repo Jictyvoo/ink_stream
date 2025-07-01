@@ -29,19 +29,53 @@ func (step StepRescaleImage) PerformExec(
 	state *imageparser.PipeState,
 	_ imageparser.ProcessOptions,
 ) (err error) {
+	paddedImage := step.wrapImgWithMargins(state.Img)
+
+	// Now resize the padded image to target resolution
 	bounds := image.Rect(0, 0, int(step.resolution.Width), int(step.resolution.Height))
-	resized := step.DrawImage(state.Img, bounds)
+	resized := step.DrawImage(state.Img.ColorModel(), bounds)
 
 	drawInterpolator := draw.ApproxBiLinear
 	if step.isPixelArt {
 		drawInterpolator = draw.NearestNeighbor
 	}
 
-	// TODO: Check aspect ration to include expand dimensions if necessary
-	drawInterpolator.Scale(resized, resized.Bounds(), state.Img, state.Img.Bounds(), draw.Over, nil)
+	drawInterpolator.Scale(
+		resized, resized.Bounds(),
+		paddedImage, paddedImage.Bounds(),
+		draw.Over, nil,
+	)
 
 	state.Img = resized
 	return
+}
+
+func (step StepRescaleImage) wrapImgWithMargins(sttImg image.Image) image.Image {
+	// Calculate required padding
+	margins := step.calculateNewDimensions(sttImg.Bounds())
+	if margins.w == 0 && margins.h == 0 {
+		return sttImg
+	}
+
+	// Apply padding to the image (centered)
+	paddedWidth := sttImg.Bounds().Dx() + int(margins.w)
+	paddedHeight := sttImg.Bounds().Dy() + int(margins.h)
+
+	offsetX := int(margins.w) / 2
+	offsetY := int(margins.h) / 2
+
+	paddedRect := image.Rect(0, 0, paddedWidth, paddedHeight)
+	paddedImage := image.NewNRGBA(paddedRect)
+
+	// Draw the original image onto the center of the padded image
+	draw.Draw(
+		paddedImage, image.Rect(
+			offsetX, offsetY,
+			offsetX+sttImg.Bounds().Dx(), offsetY+sttImg.Bounds().Dy(),
+		),
+		sttImg, image.Point{}, draw.Src,
+	)
+	return paddedImage
 }
 
 func (step StepRescaleImage) calculateNewDimensions(
