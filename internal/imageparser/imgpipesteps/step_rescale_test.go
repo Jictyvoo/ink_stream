@@ -61,7 +61,7 @@ func TestStepRescaleImage_PerformExec(t *testing.T) {
 			fillWith:     color.RGBA{R: 8, G: 127, B: 31, A: 255},
 		},
 		{
-			name:         "Divide Height by 8",
+			name:         "Target Height 8x smaller", // Must add padding before resize
 			originalSize: deviceprof.Resolution{Width: 4, Height: 32},
 			targetSize:   deviceprof.Resolution{Width: 4, Height: 4},
 			fillWith:     color.RGBA{R: 0, G: 255, B: 0, A: 255},

@@ -7,6 +7,7 @@ import (
 
 	"github.com/Jictyvoo/ink_stream/internal/imageparser"
 	"github.com/Jictyvoo/ink_stream/pkg/deviceprof"
+	"github.com/Jictyvoo/ink_stream/pkg/imgutils"
 )
 
 var _ imageparser.PipeStep = (*StepRescaleImage)(nil)
@@ -57,21 +58,45 @@ func (step StepRescaleImage) wrapImgWithMargins(sttImg image.Image) image.Image 
 		return sttImg
 	}
 
+	imgBounds := sttImg.Bounds()
 	// Apply padding to the image (centered)
-	paddedWidth := sttImg.Bounds().Dx() + int(margins.w)
-	paddedHeight := sttImg.Bounds().Dy() + int(margins.h)
+	paddedWidth := imgBounds.Dx() + int(margins.w)
+	paddedHeight := imgBounds.Dy() + int(margins.h)
 
-	offsetX := int(margins.w) / 2
-	offsetY := int(margins.h) / 2
+	offsets := image.Point{
+		X: int(margins.w) / 2,
+		Y: int(margins.h) / 2,
+	}
+	paddedImage := image.NewNRGBA(image.Rect(0, 0, paddedWidth, paddedHeight))
+	// Fill image paddings
+	{
+		dominantColors := imgutils.ImageMarginDominantColor(
+			sttImg, uint32(margins.w), uint32(margins.h), 5,
+		)
+		// Fill top and bottom padding
+		if offsets.Y > 0 {
+			topRect := image.Rect(0, 0, paddedWidth, offsets.Y)
+			imgutils.FillImageRegionWithColor(paddedImage, topRect, dominantColors.Top)
 
-	paddedRect := image.Rect(0, 0, paddedWidth, paddedHeight)
-	paddedImage := image.NewNRGBA(paddedRect)
+			bottomRect := image.Rect(0, imgBounds.Dy()+offsets.Y, paddedWidth, paddedHeight)
+			imgutils.FillImageRegionWithColor(paddedImage, bottomRect, dominantColors.Bottom)
+		}
+
+		// Fill left and right padding
+		if offsets.X > 0 {
+			leftRect := image.Rect(0, 0, offsets.X, paddedHeight)
+			imgutils.FillImageRegionWithColor(paddedImage, leftRect, dominantColors.Left)
+
+			rightRect := image.Rect(imgBounds.Dx()+offsets.X, 0, paddedWidth, paddedHeight)
+			imgutils.FillImageRegionWithColor(paddedImage, rightRect, dominantColors.Right)
+		}
+	}
 
 	// Draw the original image onto the center of the padded image
 	draw.Draw(
 		paddedImage, image.Rect(
-			offsetX, offsetY,
-			offsetX+sttImg.Bounds().Dx(), offsetY+sttImg.Bounds().Dy(),
+			offsets.X, offsets.Y,
+			offsets.X+imgBounds.Dx(), offsets.Y+imgBounds.Dy(),
 		),
 		sttImg, image.Point{}, draw.Src,
 	)
