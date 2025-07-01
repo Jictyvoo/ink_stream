@@ -45,10 +45,11 @@ func CropBox(img image.Image, colorConverter ColorConverter, opts BoxOptions) im
 	}
 
 	// Iterate over all pixels in the image using a custom Iterator function.
-	for x, y := range Iterator(img) {
+	for x, y := range RegionIterator(bbox) {
 		pixel := img.At(x, y)
 		_, _, _, a := pixel.RGBA() // Extract alpha value to check transparency.
 
+		x, y = x-bbox.Min.X, y-bbox.Min.Y
 		// Update transparency analysis if enabled.
 		if opts.Has(BoxEliminateTransparent) && a == 0 {
 			transparentAnalysis.column[x]++
