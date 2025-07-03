@@ -32,27 +32,31 @@ func (step StepCropOrRotateImage) StepID() string {
 }
 
 func (step StepCropOrRotateImage) PerformExec(
-	state *imageparser.PipeState,
-	_ imageparser.ProcessOptions,
+	state *imageparser.PipeState, _ imageparser.ProcessOptions,
 ) (err error) {
 	originalBounds := state.Img.Bounds()
-	if step.orientation == imgutils.OrientationPortrait &&
-		originalBounds.Dx() > originalBounds.Dy() {
+	imgOrientation := imgutils.NewOrientation(originalBounds)
+
+	if step.orientation != imgOrientation {
 		if step.rotateImage {
 			// Rotate the image if rotateImage is true
 			state.Img = imgutils.RotateImage(state.Img, imgutils.Rotation90Degrees)
 		} else {
 			// Cut the image in half horizontally
-			midX := originalBounds.Min.X + originalBounds.Dx()/2
-			halfBounds := struct{ left, right image.Rectangle }{
-				left:  image.Rect(originalBounds.Min.X, originalBounds.Min.Y, midX, originalBounds.Max.Y),
-				right: image.Rect(midX, originalBounds.Min.Y, originalBounds.Max.X, originalBounds.Max.Y),
-			}
+			halfBounds := imgutils.HalfSplit(originalBounds, imgOrientation)
 
 			originalImg := state.Img
-			state.SubImages = []image.Image{
-				imgutils.CropImage(originalImg, halfBounds.left),
-				imgutils.CropImage(originalImg, halfBounds.right),
+			switch step.orientation {
+			case imgutils.OrientationLandscape:
+				state.SubImages = []image.Image{
+					imgutils.CropImage(originalImg, halfBounds.Top),
+					imgutils.CropImage(originalImg, halfBounds.Bottom),
+				}
+			case imgutils.OrientationPortrait:
+				state.SubImages = []image.Image{
+					imgutils.CropImage(originalImg, halfBounds.Left),
+					imgutils.CropImage(originalImg, halfBounds.Right),
+				}
 			}
 		}
 	}
