@@ -13,13 +13,18 @@ type (
 		UpdateDrawFactory(fac imgutils.DrawImageFactory)
 		privateInternalStep()
 	}
+	stepIdentifier interface {
+		StepID() string
+	}
 	UnitStep interface {
 		PixelStep(imgColor color.Color) color.Color
+		stepIdentifier
 	}
 
 	PipeStep interface {
 		PerformExec(state *PipeState, opts ProcessOptions) (err error)
 		paletteFactoryStep
+		stepIdentifier
 	}
 )
 

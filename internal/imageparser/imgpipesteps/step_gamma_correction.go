@@ -30,6 +30,10 @@ func NewStepGammaCorrectionPreDefined(gamma float64) StepGammaCorrectionImage {
 	}
 }
 
+func (step StepGammaCorrectionImage) StepID() string {
+	return "gamma_correction"
+}
+
 func (step StepGammaCorrectionImage) lookupTable(gamma float64) [256]uint8 {
 	// GammaCorrection applies gamma correction on a given value
 	correction := func(a uint8) uint8 {

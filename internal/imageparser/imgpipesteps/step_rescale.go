@@ -33,6 +33,10 @@ func NewStepThumbnail() StepRescaleImage {
 	return StepRescaleImage{resolution: deviceprof.Resolution{Width: 300, Height: 470}}
 }
 
+func (step StepRescaleImage) StepID() string {
+	return "rescale"
+}
+
 func (step StepRescaleImage) PerformExec(
 	state *imageparser.PipeState,
 	_ imageparser.ProcessOptions,

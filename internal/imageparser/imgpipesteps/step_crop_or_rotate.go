@@ -27,6 +27,10 @@ func NewStepCropOrRotate(
 	}
 }
 
+func (step StepCropOrRotateImage) StepID() string {
+	return "crop_or_rotate"
+}
+
 func (step StepCropOrRotateImage) PerformExec(
 	state *imageparser.PipeState,
 	_ imageparser.ProcessOptions,

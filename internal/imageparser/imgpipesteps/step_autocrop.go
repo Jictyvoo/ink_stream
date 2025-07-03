@@ -26,6 +26,10 @@ func NewStepAutoCrop(
 	}
 }
 
+func (step StepAutoCropImage) StepID() string {
+	return "autocrop"
+}
+
 func (step StepAutoCropImage) PerformExec(
 	state *imageparser.PipeState,
 	_ imageparser.ProcessOptions,

@@ -22,6 +22,10 @@ func NewStepAutoContrast(cutLow, cutHigh float64) *StepAutoContrastImage {
 	}
 }
 
+func (step StepAutoContrastImage) StepID() string {
+	return "autocontrast"
+}
+
 func (step *StepAutoContrastImage) UpdateDrawFactory(fac imgutils.DrawImageFactory) {
 	step.BaseImageStep.UpdateDrawFactory(fac)
 	step.gammaCorrect.UpdateDrawFactory(fac)

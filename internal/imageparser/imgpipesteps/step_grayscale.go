@@ -21,6 +21,10 @@ func NewStepGrayScale() *StepGrayScaleImage {
 	return &StepGrayScaleImage{}
 }
 
+func (step StepGrayScaleImage) StepID() string {
+	return "grayscale"
+}
+
 func (step StepGrayScaleImage) PerformExec(
 	state *imageparser.PipeState,
 	_ imageparser.ProcessOptions,

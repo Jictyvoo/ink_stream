@@ -25,6 +25,10 @@ func NewStepGaussianBlur(radius int) *StepApplyGaussianBlurImage {
 	return &StepApplyGaussianBlurImage{kernel: createBlurKernel(radius)}
 }
 
+func (step StepApplyGaussianBlurImage) StepID() string {
+	return "gaussian_blur"
+}
+
 func createBlurKernel(radius int) gaussianKernel {
 	size := (2 * radius) + 1
 	weights := make([]int, size)
