@@ -36,15 +36,32 @@ func (step StepMarginWrapImage) PerformExec(
 ) (err error) {
 	// Calculate required padding
 	sttImg := state.Img
-	margins := step.calculateNewDimensions(sttImg.Bounds())
+	imgBounds := sttImg.Bounds()
+	origBounds := imgBounds
+	{
+		expectedOrientation := step.resolution.Orientation()
+		if imgOrientation := imgutils.NewOrientation(imgBounds); expectedOrientation != imgOrientation {
+			halfBounds := imgutils.HalfSplit(imgBounds, imgOrientation)
+			switch expectedOrientation { // Temporarily split
+			case imgutils.OrientationPortrait:
+				imgBounds = halfBounds.Left
+			case imgutils.OrientationLandscape:
+				imgBounds = halfBounds.Top
+			}
+		}
+	}
+	margins := step.calculateNewDimensions(imgBounds.Bounds())
 	if margins.w == 0 && margins.h == 0 {
 		return
 	}
+	if imgBounds != origBounds {
+		margins.w *= 2
+		margins.h *= 2
+	}
 
-	imgBounds := sttImg.Bounds()
 	// Apply padding to the image (centered)
-	paddedWidth := imgBounds.Dx() + int(margins.w)
-	paddedHeight := imgBounds.Dy() + int(margins.h)
+	paddedWidth := origBounds.Dx() + int(margins.w)
+	paddedHeight := origBounds.Dy() + int(margins.h)
 
 	offsets := image.Point{
 		X: int(margins.w) / 2,
@@ -62,13 +79,13 @@ func (step StepMarginWrapImage) PerformExec(
 	marginColors.UpdateNonEmpty(imgutils.ImageMarginDominantColor(
 		sttImg, uint32(margins.w), uint32(margins.h), 5,
 	))
-	drawMargins(paddedImage, offsets, imgBounds, marginColors)
+	drawMargins(paddedImage, offsets, origBounds, marginColors)
 
 	// Draw the original image onto the center of the padded image
 	draw.Draw(
 		paddedImage, image.Rect(
 			offsets.X, offsets.Y,
-			offsets.X+imgBounds.Dx(), offsets.Y+imgBounds.Dy(),
+			offsets.X+origBounds.Dx(), offsets.Y+origBounds.Dy(),
 		),
 		sttImg, sttImg.Bounds().Min, draw.Src,
 	)
