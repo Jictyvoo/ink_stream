@@ -13,22 +13,30 @@ import (
 
 func TestStepCropOrRotateImage_PerformExec(t *testing.T) {
 	tests := []struct {
-		name           string
-		initialBounds  image.Rectangle
-		rotateImage    bool
-		expectedBounds image.Rectangle
+		name                string
+		initialBounds       image.Rectangle
+		rotateImage         bool
+		expectedOrientation imgutils.ImageOrientation
+		expectedBounds      []image.Rectangle
 	}{
 		{
-			name:           "Rotate Portrait Image",
-			initialBounds:  image.Rect(0, 0, 200, 100),
-			rotateImage:    true,
-			expectedBounds: image.Rect(0, 0, 100, 200), // Dimensions swapped after rotation
+			name:                "Rotate Portrait Image",
+			initialBounds:       image.Rect(0, 0, 200, 100),
+			rotateImage:         true,
+			expectedOrientation: imgutils.OrientationPortrait,
+			expectedBounds: []image.Rectangle{
+				image.Rect(0, 0, 100, 200),
+			}, // Dimensions swapped after rotation
 		},
 		{
-			name:           "Crop Portrait Image without Rotation",
-			initialBounds:  image.Rect(0, 0, 200, 100),
-			rotateImage:    false,
-			expectedBounds: image.Rect(100, 0, 200, 100), // Cropped to square dimensions
+			name:                "Crop Portrait Image without Rotation",
+			initialBounds:       image.Rect(0, 0, 200, 100),
+			rotateImage:         false,
+			expectedOrientation: imgutils.OrientationPortrait,
+			expectedBounds: []image.Rectangle{
+				image.Rect(0, 0, 100, 100),
+				image.Rect(100, 0, 200, 100),
+			}, // Cropped to square dimensions
 		},
 	}
 
@@ -40,9 +48,7 @@ func TestStepCropOrRotateImage_PerformExec(t *testing.T) {
 
 			// Instantiate the StepCropOrRotateImage step
 			step := NewStepCropOrRotate(
-				tt.rotateImage,
-				color.Palette{color.Black, color.White},
-				imgutils.OrientationPortrait,
+				tt.rotateImage, color.Palette{color.Black, color.White}, tt.expectedOrientation,
 			)
 
 			// Execute the step
@@ -52,11 +58,18 @@ func TestStepCropOrRotateImage_PerformExec(t *testing.T) {
 
 			// Validate the resulting image bounds
 			resultBounds := state.Img.Bounds()
-			if resultBounds != tt.expectedBounds {
-				t.Errorf(
-					"unexpected bounds: got %v, want %v",
-					resultBounds, tt.expectedBounds,
-				)
+			compareImgs := state.SubImages
+			if len(tt.expectedBounds) < 2 {
+				compareImgs = append(compareImgs, state.Img)
+			}
+
+			for index, expected := range tt.expectedBounds {
+				if compareImgs[index].Bounds() != expected {
+					t.Errorf(
+						"unexpected bounds: got %v, want %v",
+						resultBounds, tt.expectedBounds,
+					)
+				}
 			}
 		})
 	}
