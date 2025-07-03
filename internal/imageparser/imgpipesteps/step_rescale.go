@@ -116,7 +116,7 @@ func (step StepRescaleImage) wrapImgWithMargins(sttImg image.Image) image.Image 
 			offsets.X, offsets.Y,
 			offsets.X+imgBounds.Dx(), offsets.Y+imgBounds.Dy(),
 		),
-		sttImg, image.Point{}, draw.Src,
+		sttImg, sttImg.Bounds().Min, draw.Src,
 	)
 	return paddedImage
 }
