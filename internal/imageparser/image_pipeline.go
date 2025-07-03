@@ -3,6 +3,7 @@ package imageparser
 import (
 	"image"
 	"image/color"
+	"slices"
 
 	"github.com/Jictyvoo/ink_stream/pkg/imgutils"
 )
@@ -61,13 +62,18 @@ func NewImagePipelineSplitStep(palette color.Palette, steps ...PipeStep) ImagePi
 }
 
 func (imgPipe ImagePipeline) processImage(
-	img image.Image,
-) (resultImg image.Image, subImages []image.Image, err error) {
+	img image.Image, skipSteps []string,
+) (resultImg image.Image, subImages []image.Image, executedSteps []string, err error) {
 	state := PipeState{Img: img}
+	executedSteps = make([]string, 0, len(imgPipe.fullProcessSteps))
 	for _, step := range imgPipe.fullProcessSteps {
+		if slices.Contains(skipSteps, step.StepID()) {
+			continue
+		}
 		if err = step.PerformExec(&state, imgPipe.opts); err != nil {
 			return
 		}
+		executedSteps = append(executedSteps, step.StepID())
 		if len(state.SubImages) > 0 {
 			subImages = append(subImages, state.SubImages...)
 			return
@@ -95,8 +101,11 @@ func (imgPipe ImagePipeline) processImage(
 
 func (imgPipe ImagePipeline) Process(img image.Image) (outputImgs []image.Image, err error) {
 	imgSlice := []image.Image{img}
+	var skipSteps []string
 	for index := 0; index < len(imgSlice); index++ {
-		singleImage, subImages, processErr := imgPipe.processImage(imgSlice[index])
+		singleImage, subImages, executedSteps, processErr := imgPipe.processImage(
+			imgSlice[index], skipSteps,
+		)
 		if processErr != nil {
 			return nil, err
 		}
@@ -108,7 +117,11 @@ func (imgPipe ImagePipeline) Process(img image.Image) (outputImgs []image.Image,
 		if index >= len(imgSlice)-1 {
 			clear(imgSlice) // Try to free the memory
 		}
-		imgSlice = append(imgSlice, subImages...)
+
+		if len(subImages) > 0 {
+			imgSlice = append(imgSlice, subImages...)
+			skipSteps = append(skipSteps, executedSteps...)
+		}
 	}
 
 	return
