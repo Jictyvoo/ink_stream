@@ -12,6 +12,7 @@ var _ imageparser.PipeStep = (*StepAutoContrastImage)(nil)
 
 type StepAutoContrastImage struct {
 	cutoff       [2]float64
+	applyColor   bool
 	gammaCorrect StepGammaCorrectionImage
 	imageparser.BaseImageStep
 }
@@ -101,7 +102,7 @@ func (step StepAutoContrastImage) PerformExec(
 	opts imageparser.ProcessOptions,
 ) (err error) {
 	if opts.Gamma < 0.1 {
-		if opts.ApplyColor {
+		if step.applyColor {
 			opts.Gamma = 1.0
 		}
 	}

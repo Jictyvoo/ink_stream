@@ -15,8 +15,7 @@ type (
 		SubImages []image.Image
 	}
 	ProcessOptions struct {
-		Gamma      float64
-		ApplyColor bool
+		Gamma float64
 	}
 	ImagePipeline struct {
 		opts             ProcessOptions
