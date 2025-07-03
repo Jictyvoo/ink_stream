@@ -100,3 +100,67 @@ func TestMarginBox(t *testing.T) {
 		})
 	}
 }
+
+func TestHalfSplit(t *testing.T) {
+	tests := []struct {
+		name        string
+		inputRect   image.Rectangle
+		orientation ImageOrientation
+		expected    Margins[image.Rectangle]
+	}{
+		{
+			name:        "Landscape split",
+			inputRect:   image.Rect(0, 0, 100, 50),
+			orientation: OrientationLandscape,
+			expected: Margins[image.Rectangle]{
+				Left:  image.Rect(0, 0, 50, 50),
+				Right: image.Rect(50, 0, 100, 50),
+			},
+		},
+		{
+			name:        "Portrait split",
+			inputRect:   image.Rect(0, 0, 50, 100),
+			orientation: OrientationPortrait,
+			expected: Margins[image.Rectangle]{
+				Top:    image.Rect(0, 0, 50, 50),
+				Bottom: image.Rect(0, 50, 50, 100),
+			},
+		},
+		{
+			name:        "Odd width landscape split",
+			inputRect:   image.Rect(0, 0, 101, 50),
+			orientation: OrientationLandscape,
+			expected: Margins[image.Rectangle]{
+				Left:  image.Rect(0, 0, 50, 50),
+				Right: image.Rect(50, 0, 101, 50),
+			},
+		},
+		{
+			name:        "Odd height portrait split",
+			inputRect:   image.Rect(0, 0, 50, 101),
+			orientation: OrientationPortrait,
+			expected: Margins[image.Rectangle]{
+				Top:    image.Rect(0, 0, 50, 50),
+				Bottom: image.Rect(0, 50, 50, 101),
+			},
+		},
+		{
+			name:        "Zero area rectangle",
+			inputRect:   image.Rect(0, 0, 0, 0),
+			orientation: OrientationLandscape,
+			expected: Margins[image.Rectangle]{
+				Left:  image.Rect(0, 0, 0, 0),
+				Right: image.Rect(0, 0, 0, 0),
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := HalfSplit(tt.inputRect, tt.orientation)
+			if got != tt.expected {
+				t.Errorf("HalfSplit() = %+v, expected %+v", got, tt.expected)
+			}
+		})
+	}
+}

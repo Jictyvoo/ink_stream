@@ -152,3 +152,20 @@ func MarginBox(bounds image.Rectangle, percentage float64) image.Rectangle {
 
 	return boundingBox
 }
+
+func HalfSplit(
+	inputBonds image.Rectangle, imgOrientation ImageOrientation,
+) (halfBounds Margins[image.Rectangle]) {
+	switch imgOrientation {
+	case OrientationLandscape:
+		midX := inputBonds.Min.X + inputBonds.Dx()/2
+		halfBounds.Left = image.Rect(inputBonds.Min.X, inputBonds.Min.Y, midX, inputBonds.Max.Y)
+		halfBounds.Right = image.Rect(midX, inputBonds.Min.Y, inputBonds.Max.X, inputBonds.Max.Y)
+	case OrientationPortrait:
+		midY := inputBonds.Min.Y + inputBonds.Dy()/2
+		halfBounds.Top = image.Rect(inputBonds.Min.X, inputBonds.Min.Y, inputBonds.Max.X, midY)
+		halfBounds.Bottom = image.Rect(inputBonds.Min.X, midY, inputBonds.Max.X, inputBonds.Max.Y)
+	}
+
+	return
+}

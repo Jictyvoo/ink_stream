@@ -1,11 +1,55 @@
 package imgutils
 
 import (
+	"image"
 	"image/color"
 	"testing"
 
 	"github.com/Jictyvoo/ink_stream/pkg/imgutils/testimgs"
 )
+
+func TestNewOrientation(t *testing.T) {
+	tests := []struct {
+		name     string
+		rect     image.Rectangle
+		expected ImageOrientation
+	}{
+		{
+			name:     "Landscape orientation",
+			rect:     image.Rect(0, 0, 200, 100),
+			expected: OrientationLandscape,
+		},
+		{
+			name:     "Portrait orientation",
+			rect:     image.Rect(0, 0, 100, 200),
+			expected: OrientationPortrait,
+		},
+		{
+			name:     "Square image treated as portrait",
+			rect:     image.Rect(0, 0, 100, 100),
+			expected: OrientationPortrait, // Since Dx() == Dy(), it defaults to Portrait
+		},
+		{
+			name:     "Negative coordinates, still landscape",
+			rect:     image.Rect(-100, -50, 100, 50),
+			expected: OrientationLandscape,
+		},
+		{
+			name:     "Zero area image, portrait default",
+			rect:     image.Rect(0, 0, 0, 0),
+			expected: OrientationPortrait,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := NewOrientation(tt.rect)
+			if got != tt.expected {
+				t.Errorf("NewOrientation(%v) = %v; want %v", tt.rect, got, tt.expected)
+			}
+		})
+	}
+}
 
 func TestRotateImage(t *testing.T) {
 	// Define test cases

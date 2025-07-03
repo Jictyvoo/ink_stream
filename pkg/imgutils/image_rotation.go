@@ -12,6 +12,15 @@ const (
 	OrientationLandscape
 )
 
+func NewOrientation(imgBounds image.Rectangle) ImageOrientation {
+	imgOrientation := OrientationPortrait
+	if imgBounds.Dx() > imgBounds.Dy() {
+		imgOrientation = OrientationLandscape
+	}
+
+	return imgOrientation
+}
+
 type RotationDegrees uint8
 
 const (
