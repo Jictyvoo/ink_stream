@@ -25,6 +25,11 @@ func (step StepGrayScaleImage) PerformExec(
 	state *imageparser.PipeState,
 	_ imageparser.ProcessOptions,
 ) (err error) {
+	switch state.Img.ColorModel() { // Prevent redraw in case already is in grayscale
+	case color.GrayModel, color.Gray16Model:
+		return nil
+	}
+
 	grayImg := image.NewGray(state.Img.Bounds())
 	for x, y := range imgutils.Iterator(state.Img) {
 		grayImg.Set(x, y, step.PixelStep(state.Img.At(x, y)))

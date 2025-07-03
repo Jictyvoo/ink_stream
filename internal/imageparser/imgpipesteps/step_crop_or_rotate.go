@@ -31,17 +31,18 @@ func (step StepCropOrRotateImage) PerformExec(
 	state *imageparser.PipeState,
 	_ imageparser.ProcessOptions,
 ) (err error) {
-	newBounds := state.Img.Bounds()
-	if step.orientation == imgutils.OrientationPortrait && newBounds.Dx() > newBounds.Dy() {
+	originalBounds := state.Img.Bounds()
+	if step.orientation == imgutils.OrientationPortrait &&
+		originalBounds.Dx() > originalBounds.Dy() {
 		if step.rotateImage {
 			// Rotate the image if rotateImage is true
 			state.Img = imgutils.RotateImage(state.Img, imgutils.Rotation90Degrees)
 		} else {
 			// Cut the image in half horizontally
-			midX := newBounds.Min.X + newBounds.Dx()/2
+			midX := originalBounds.Min.X + originalBounds.Dx()/2
 			halfBounds := struct{ left, right image.Rectangle }{
-				left:  image.Rect(newBounds.Min.X, newBounds.Min.Y, midX, newBounds.Max.Y),
-				right: image.Rect(midX, newBounds.Min.Y, newBounds.Max.X, newBounds.Max.Y),
+				left:  image.Rect(originalBounds.Min.X, originalBounds.Min.Y, midX, originalBounds.Max.Y),
+				right: image.Rect(midX, originalBounds.Min.Y, originalBounds.Max.X, originalBounds.Max.Y),
 			}
 
 			originalImg := state.Img

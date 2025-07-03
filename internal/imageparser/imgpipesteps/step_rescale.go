@@ -22,7 +22,11 @@ type StepRescaleImage struct {
 }
 
 func NewStepRescale(resolution deviceprof.Resolution, allowStretch bool) *StepRescaleImage {
-	return &StepRescaleImage{resolution: resolution, includeMargin: !allowStretch}
+	return &StepRescaleImage{
+		resolution:    resolution,
+		includeMargin: !allowStretch,
+		marginColor:   color.White,
+	}
 }
 
 func NewStepThumbnail() StepRescaleImage {
