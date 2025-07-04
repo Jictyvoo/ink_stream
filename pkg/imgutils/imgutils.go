@@ -18,7 +18,8 @@ const (
 )
 
 func NormalizePixel[T Number](value T) uint8 {
-	return min(MaxPixelValue, uint8(max(MinPixelValue, value)))
+	// The conversion to int64 is required because the maximum value for an int8 is 127
+	return uint8(max(MinPixelValue, min(MaxPixelValue, int64(value))))
 }
 
 type (
