@@ -4,47 +4,30 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
-	"image/color"
 	"log/slog"
 	"os"
 	"path/filepath"
 	"strings"
 
-	"github.com/Jictyvoo/ink_stream/internal/imageparser"
-	"github.com/Jictyvoo/ink_stream/internal/imageparser/imgpipesteps"
 	"github.com/Jictyvoo/ink_stream/internal/services/filextract/cbxr"
 	"github.com/Jictyvoo/ink_stream/internal/services/outdirwriter"
-	"github.com/Jictyvoo/ink_stream/pkg/deviceprof"
 )
 
 type FileProcessorWorker struct {
 	OutputFolder   string
 	FilenameStream chan FileInfo
-	imgPipeline    imageparser.ImagePipeline
-	profile        deviceprof.DeviceProfile
+	fileProcessFac FileOutputFactory
 }
 
 func NewFileProcessorWorker(
 	filenameStream chan FileInfo,
 	outputFolder string,
-	targetProfile deviceprof.DeviceProfile,
+	fileProcessFac FileOutputFactory,
 ) *FileProcessorWorker {
 	return &FileProcessorWorker{
 		FilenameStream: filenameStream,
 		OutputFolder:   outputFolder,
-		profile:        targetProfile,
-		imgPipeline: imageparser.NewImagePipeline(
-			color.Palette(targetProfile.Palette),
-			imgpipesteps.NewStepAutoCrop(color.Palette{color.Black, color.White}),
-			imgpipesteps.NewStepMarginWrap(targetProfile.Resolution),
-			imgpipesteps.NewStepCropOrRotate(
-				false, color.Palette(targetProfile.Palette),
-				targetProfile.Resolution.Orientation(),
-			),
-			imgpipesteps.NewStepGrayScale(),
-			imgpipesteps.NewStepRescale(targetProfile.Resolution, false),
-			imgpipesteps.NewStepAutoContrast(0, 0),
-		),
+		fileProcessFac: fileProcessFac,
 	}
 }
 
@@ -54,7 +37,7 @@ func (fp *FileProcessorWorker) Run() error {
 			return err
 		}
 
-		// After finishing file processing, start the post analysis
+		// After finishing file processing, start the post-analysis
 		if err := outdirwriter.MoveFirstFileToCoverFolder(filepath.Join(fp.OutputFolder, filename.BaseName)); err != nil {
 			return err
 		}
@@ -87,10 +70,13 @@ func (fp *FileProcessorWorker) processFile(file FileInfo) (resultErr error) {
 	}(filePointer)
 
 	var (
-		extractor       cbxr.Extractor
-		multiThreadProc = NewMultiThreadImageProcessor(extractDir, fp.imgPipeline)
+		extractor           cbxr.Extractor
+		fileOutputProcessor FileOutputWriter
 	)
-	defer multiThreadProc.Close()
+	if fileOutputProcessor, err = fp.fileProcessFac(extractDir); err != nil {
+		return fmt.Errorf("failed to create file output processor: %w", err)
+	}
+	defer fileOutputProcessor.Close()
 
 	if extractor, err = fp.newExtractor(file, filePointer); err != nil {
 		slog.Error("Failed to create extractor", slog.String("error", err.Error()))
@@ -109,11 +95,11 @@ func (fp *FileProcessorWorker) processFile(file FileInfo) (resultErr error) {
 			continue
 		}
 
-		multiThreadProc.Process(string(fileName), fileResult.Data)
+		fileOutputProcessor.Process(string(fileName), fileResult.Data)
 		totalSent++
 	}
 
-	err = multiThreadProc.Shutdown()
+	err = fileOutputProcessor.Shutdown()
 	slog.Info(
 		fmt.Sprintf("Sent a total of %d files", totalSent),
 		slog.String("inputFile", file.CompleteName),

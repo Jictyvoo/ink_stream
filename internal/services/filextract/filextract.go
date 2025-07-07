@@ -5,12 +5,10 @@ type FileInfo struct {
 	BaseName     string
 }
 
-type CropStyle uint8
+type FileOutputWriter interface {
+	Close() error
+	Shutdown() error
+	Process(filename string, data []byte)
+}
 
-const (
-	CropBasic CropStyle = iota
-	CropNormal
-	CropAggressive
-)
-
-type Options struct{}
+type FileOutputFactory func(outputDir string) (FileOutputWriter, error)

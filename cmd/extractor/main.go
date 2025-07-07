@@ -11,8 +11,8 @@ import (
 	"sync"
 
 	"github.com/Jictyvoo/ink_stream/internal/services/filextract"
+	"github.com/Jictyvoo/ink_stream/internal/services/filextract/cbxr"
 	"github.com/Jictyvoo/ink_stream/internal/utils"
-	"github.com/Jictyvoo/ink_stream/pkg/deviceprof"
 )
 
 func main() {
@@ -36,8 +36,6 @@ func main() {
 	)
 
 	if outputFolder == "" {
-		// baseDir := filepath.Base(rootDir)
-		// rootDir = strings.TrimSuffix(strings.TrimSuffix(rootDir, "/"), baseDir)
 		outputFolder = filepath.Join(rootDir, "extracted", lastFolderName)
 	}
 	fmt.Printf("Using target folder %s\n", inputFolder)
@@ -52,13 +50,15 @@ func main() {
 		sendChannel = make(chan filextract.FileInfo)
 	)
 
-	deviceProfile, _ := deviceprof.Profile(deviceprof.DeviceKindle11)
 	// Create worker pool
 	for range 5 {
 		wg.Add(1)
 		go func() {
 			fp := filextract.NewFileProcessorWorker(
-				sendChannel, outputFolder, deviceProfile,
+				sendChannel, outputFolder,
+				func(outputDir string) (filextract.FileOutputWriter, error) {
+					return NewFileWriterWrapper(outputDir), nil
+				},
 			)
 			defer wg.Done()
 			_ = fp.Run()
@@ -66,7 +66,7 @@ func main() {
 	}
 
 	filenameList := utils.ListAllFiles(inputFolder)
-	allowedFormats := []string{".cbz", ".cbr", ".zip", ".rar", ".pdf"}
+	allowedFormats := cbxr.SupportedFileExtensions()
 	for _, fileAbsolutePath := range filenameList {
 		fileExt := strings.ToLower(filepath.Ext(fileAbsolutePath))
 		if slices.Contains(allowedFormats, fileExt) {

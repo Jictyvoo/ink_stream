@@ -22,3 +22,7 @@ type Extractor interface {
 }
 
 var ErrUnsupportedFormat = errors.New("unsupported file format")
+
+func SupportedFileExtensions() []string {
+	return []string{".cbz", ".cbr", ".zip", ".rar", ".pdf"}
+}
