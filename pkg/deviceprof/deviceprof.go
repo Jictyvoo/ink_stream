@@ -1,6 +1,10 @@
 package deviceprof
 
-import "github.com/Jictyvoo/ink_stream/pkg/imgutils"
+import (
+	"strings"
+
+	"github.com/Jictyvoo/ink_stream/pkg/imgutils"
+)
 
 type (
 	Resolution    struct{ Width, Height uint }
@@ -84,5 +88,12 @@ var defaultProfiles = map[DeviceType]DeviceProfile{
 
 func Profile(name DeviceType) (DeviceProfile, bool) {
 	prof, found := defaultProfiles[name]
+	if !found {
+		for key, dProf := range defaultProfiles {
+			if strings.EqualFold(string(key), string(name)) {
+				return dProf, true
+			}
+		}
+	}
 	return prof, found
 }
