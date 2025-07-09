@@ -6,17 +6,20 @@ import (
 	"iter"
 	"time"
 
-	"github.com/mholt/archiver/v4"
+	"github.com/mholt/archives"
 )
 
-func checkFileFormat(filename string, file io.Reader) (io.Reader, archiver.Extractor, error) {
-	format, fileReader, err := archiver.Identify(filename, file)
+func checkFileFormat(filename string, file io.Reader) (io.Reader, archives.Extractor, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	format, fileReader, err := archives.Identify(ctx, filename, file)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	// It must be an filextract
-	if ex, ok := format.(archiver.Extractor); ok {
+	if ex, ok := format.(archives.Extractor); ok {
 		return fileReader, ex, nil
 	}
 
@@ -25,26 +28,33 @@ func checkFileFormat(filename string, file io.Reader) (io.Reader, archiver.Extra
 
 type (
 	MultiZipRarExtractor struct {
-		format     archiver.Extractor
+		format     archives.Extractor
 		fileReader io.Reader
 		timeout    time.Duration
 	}
-	archiverExtractInteract struct {
+	archivesExtractInteract struct {
 		yield          func(FileName, FileResult) bool
 		stopExtracting bool
 	}
 )
 
-func NewMultiZipRarExtractor(filename string, fileReader FileContentStream) (*MultiZipRarExtractor, error) {
+func NewMultiZipRarExtractor(
+	filename string,
+	fileReader FileContentStream,
+) (*MultiZipRarExtractor, error) {
 	reader, format, err := checkFileFormat(filename, fileReader)
 	if err != nil {
 		return nil, err
 	}
 
-	return &MultiZipRarExtractor{fileReader: reader, format: format, timeout: 9000 * time.Second}, nil
+	return &MultiZipRarExtractor{
+		fileReader: reader,
+		format:     format,
+		timeout:    9000 * time.Second,
+	}, nil
 }
 
-func (aei *archiverExtractInteract) handleFile(_ context.Context, f archiver.File) error {
+func (aei *archivesExtractInteract) handleFile(_ context.Context, f archives.FileInfo) error {
 	// Skip all remaining files
 	if aei.stopExtracting {
 		return nil
@@ -73,13 +83,12 @@ func (aei *archiverExtractInteract) handleFile(_ context.Context, f archiver.Fil
 
 func (ext MultiZipRarExtractor) FileSeq() iter.Seq2[FileName, FileResult] {
 	return func(yield func(FileName, FileResult) bool) {
-		aei := archiverExtractInteract{yield: yield}
+		aei := archivesExtractInteract{yield: yield}
 		ctx, cancel := context.WithTimeout(context.Background(), ext.timeout)
 		defer cancel()
 
 		// Use nil to extract all files
-		err := ext.format.Extract(ctx, ext.fileReader, nil, aei.handleFile)
-
+		err := ext.format.Extract(ctx, ext.fileReader, aei.handleFile)
 		if err != nil {
 			if !yield("", FileResult{Error: err}) {
 				return
