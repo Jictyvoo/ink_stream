@@ -1,0 +1,12 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Run Extractor" type="GoApplicationRunConfiguration" factoryName="Go Application">
+    <module name="Kindle" />
+    <working_directory value="$PROJECT_DIR$" />
+    <parameters value="-src=$PROJECT_DIR$/tests/so-blablabla" />
+    <kind value="PACKAGE" />
+    <package value="github.com/Jictyvoo/ink_stream/cmd/extractor" />
+    <directory value="$PROJECT_DIR$" />
+    <filePath value="$PROJECT_DIR$/cmd/extractor/main.go" />
+    <method v="2" />
+  </configuration>
+</component>

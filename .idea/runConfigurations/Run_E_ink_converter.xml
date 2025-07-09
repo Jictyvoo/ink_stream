@@ -1,0 +1,12 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Run E-ink converter" type="GoApplicationRunConfiguration" factoryName="Go Application">
+    <module name="Kindle" />
+    <working_directory value="$PROJECT_DIR$" />
+    <parameters value="-src=$PROJECT_DIR$/tests/so-blablabla -profile=K11" />
+    <kind value="PACKAGE" />
+    <package value="github.com/Jictyvoo/ink_stream/cmd/kindleconverter" />
+    <directory value="$PROJECT_DIR$" />
+    <filePath value="$PROJECT_DIR$/cmd/kindleconverter/main.go" />
+    <method v="2" />
+  </configuration>
+</component>
