@@ -16,6 +16,7 @@ import (
 	"github.com/Jictyvoo/ink_stream/internal/services/filextract"
 	"github.com/Jictyvoo/ink_stream/internal/services/filextract/cbxr"
 	"github.com/Jictyvoo/ink_stream/internal/services/imgprocessor"
+	"github.com/Jictyvoo/ink_stream/internal/services/mkbook"
 	"github.com/Jictyvoo/ink_stream/internal/services/outdirwriter"
 	"github.com/Jictyvoo/ink_stream/internal/utils"
 )
@@ -58,8 +59,11 @@ func main() {
 				sendChannel,
 				cliArgs.OutputFolder,
 				func(outputDir string) (filextract.FileOutputWriter, error) {
-					fileWriter := outWriterFactory(outputDir)
-					return imgprocessor.NewMultiThreadImageProcessor(fileWriter, imgPipeline), nil
+					fileWriter, constructErr := outWriterFactory(outputDir)
+					imageProcessor := imgprocessor.NewMultiThreadImageProcessor(
+						fileWriter, imgPipeline,
+					)
+					return imageProcessor, constructErr
 				},
 			)
 			defer wg.Done()
@@ -93,14 +97,16 @@ func main() {
 
 func fileWriterGenerator(
 	format OutputFormat,
-) (func(outputDir string) imgprocessor.FileWriter, error) {
+) (func(outputDir string) (imgprocessor.FileWriter, error), error) {
 	switch format {
 	case FormatFolder:
-		return func(outputDir string) imgprocessor.FileWriter {
-			return outdirwriter.NewWriterHandle(outputDir)
+		return func(outputDir string) (imgprocessor.FileWriter, error) {
+			return outdirwriter.NewWriterHandle(outputDir), nil
 		}, nil
 	case FormatEpub:
-		return nil, errors.New("epub format not supported yet")
+		return func(outputDir string) (imgprocessor.FileWriter, error) {
+			return mkbook.NewEpubMounter(outputDir)
+		}, nil
 	case FormatMobi:
 		return nil, errors.New("mobi format not supported yet")
 	default:
