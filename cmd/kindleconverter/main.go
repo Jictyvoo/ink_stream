@@ -14,6 +14,7 @@ import (
 	"github.com/Jictyvoo/ink_stream/internal/services/filextract"
 	"github.com/Jictyvoo/ink_stream/internal/services/filextract/cbxr"
 	"github.com/Jictyvoo/ink_stream/internal/services/imgprocessor"
+	"github.com/Jictyvoo/ink_stream/internal/services/outdirwriter"
 	"github.com/Jictyvoo/ink_stream/internal/utils"
 )
 
@@ -49,7 +50,8 @@ func main() {
 				sendChannel,
 				cliArgs.OutputFolder,
 				func(outputDir string) (filextract.FileOutputWriter, error) {
-					return imgprocessor.NewMultiThreadImageProcessor(outputDir, imgPipeline), nil
+					fileWriter := outdirwriter.NewWriterHandle(outputDir)
+					return imgprocessor.NewMultiThreadImageProcessor(fileWriter, imgPipeline), nil
 				},
 			)
 			defer wg.Done()

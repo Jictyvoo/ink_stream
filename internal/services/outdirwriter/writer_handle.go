@@ -63,7 +63,7 @@ func (wh WriterHandle) subFolderName(absFilename string) (directoryName string) 
 	}
 
 	wh.folderCounter.total.Add(1)
-	return
+	return directoryName
 }
 
 func (wh WriterHandle) Handler(filename string, callback func(writer io.Writer) error) error {
@@ -84,7 +84,7 @@ func (wh WriterHandle) Handler(filename string, callback func(writer io.Writer) 
 	return callback(writeFile)
 }
 
-func (wh WriterHandle) OnFinish() (err error) {
+func (wh WriterHandle) Flush() (err error) {
 	if wh.folderCounter.onRoot.Load() > 0 && wh.folderCounter.onSubDir.Load() > 0 {
 		if wh.folderCounter.cover.Load() > 0 {
 			err = fmt.Errorf("only one of onRoot and onSubDir may be specified")
@@ -97,5 +97,5 @@ func (wh WriterHandle) OnFinish() (err error) {
 		)
 	}
 
-	return
+	return err
 }

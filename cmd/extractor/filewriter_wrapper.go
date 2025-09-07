@@ -21,7 +21,7 @@ func (f FileWriterWrapper) Close() error {
 }
 
 func (f FileWriterWrapper) Shutdown() error {
-	return f.WriterHandle.OnFinish()
+	return f.WriterHandle.Flush()
 }
 
 func (f FileWriterWrapper) Process(filename string, data []byte) {

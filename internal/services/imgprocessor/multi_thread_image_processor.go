@@ -13,14 +13,13 @@ import (
 	"sync/atomic"
 
 	"github.com/Jictyvoo/ink_stream/internal/imageparser"
-	"github.com/Jictyvoo/ink_stream/internal/services/outdirwriter"
 	"github.com/Jictyvoo/ink_stream/internal/utils"
 )
 
 type (
 	fileEntry                 utils.Entry2[string, []byte]
 	MultiThreadImageProcessor struct {
-		fileWriter    outdirwriter.WriterHandle
+		fileWriter    FileWriter
 		imgPipeline   imageparser.ImagePipeline
 		wg            sync.WaitGroup
 		inputChan     chan fileEntry
@@ -30,11 +29,11 @@ type (
 )
 
 func NewMultiThreadImageProcessor(
-	extractDir string,
+	fileWriter FileWriter,
 	imgPipeline imageparser.ImagePipeline,
 ) *MultiThreadImageProcessor {
 	mtip := &MultiThreadImageProcessor{
-		fileWriter:    outdirwriter.NewWriterHandle(extractDir),
+		fileWriter:    fileWriter,
 		imgPipeline:   imgPipeline,
 		numGoroutines: 10,
 		inputChan:     make(chan fileEntry),
@@ -105,6 +104,6 @@ func (mtip *MultiThreadImageProcessor) Shutdown() error {
 	err := mtip.Close()
 	mtip.wg.Wait() // Wait all goroutines to finish
 
-	err = mtip.fileWriter.OnFinish()
+	err = mtip.fileWriter.Flush()
 	return err
 }
