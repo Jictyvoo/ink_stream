@@ -1,8 +1,9 @@
 module github.com/Jictyvoo/ink_stream
 
-go 1.24
+go 1.25
 
 require (
+	github.com/go-shiori/go-epub v1.2.1
 	github.com/mholt/archives v0.1.3
 	github.com/pdfcpu/pdfcpu v0.11.0
 	golang.org/x/image v0.28.0
@@ -15,6 +16,8 @@ require (
 	github.com/bodgit/sevenzip v1.6.1 // indirect
 	github.com/bodgit/windows v1.0.1 // indirect
 	github.com/dsnet/compress v0.0.2-0.20230904184137-39efe44ab707 // indirect
+	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
+	github.com/gofrs/uuid/v5 v5.0.0 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	github.com/hhrutter/lzw v1.0.0 // indirect
 	github.com/hhrutter/pkcs7 v0.2.0 // indirect
@@ -31,8 +34,10 @@ require (
 	github.com/sorairolake/lzip-go v0.3.7 // indirect
 	github.com/spf13/afero v1.14.0 // indirect
 	github.com/ulikunitz/xz v0.5.12 // indirect
+	github.com/vincent-petithory/dataurl v1.0.0 // indirect
 	go4.org v0.0.0-20230225012048-214862532bf5 // indirect
 	golang.org/x/crypto v0.39.0 // indirect
+	golang.org/x/net v0.35.0 // indirect
 	golang.org/x/text v0.26.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
