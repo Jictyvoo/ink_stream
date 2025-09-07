@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"log/slog"
 	"os"
@@ -50,7 +51,7 @@ func main() {
 		os.Exit(1)
 	}
 	// Create worker pool
-	for range runtime.NumCPU() {
+	for index := range runtime.NumCPU() {
 		wg.Add(1)
 		go func() {
 			fp := filextract.NewFileProcessorWorker(
@@ -62,7 +63,13 @@ func main() {
 				},
 			)
 			defer wg.Done()
-			_ = fp.Run()
+			if processErr := fp.Run(); processErr != nil {
+				slog.Error(
+					fmt.Sprintf("Failed to process file, goroutine #%d finished", index),
+					slog.String("error", processErr.Error()),
+					slog.Int("remaining_goroutines", runtime.NumGoroutine()),
+				)
+			}
 		}()
 	}
 
