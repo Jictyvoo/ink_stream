@@ -13,6 +13,7 @@ import (
 
 	"github.com/Jictyvoo/ink_stream/internal/services/filextract"
 	"github.com/Jictyvoo/ink_stream/internal/services/filextract/cbxr"
+	"github.com/Jictyvoo/ink_stream/internal/services/imgprocessor"
 	"github.com/Jictyvoo/ink_stream/internal/utils"
 )
 
@@ -26,7 +27,7 @@ func main() {
 		_ = json.Unmarshal(jsonBytes, &argsMap)
 		slog.Info("Using cli options", slog.Any("options", argsMap))
 	} // Ensure the output folder exists
-	if err := os.MkdirAll(cliArgs.OutputFolder, 0755); err != nil {
+	if err := os.MkdirAll(cliArgs.OutputFolder, 755); err != nil {
 		log.Fatalf("Failed to create output folder: %v", err)
 	}
 
@@ -48,7 +49,7 @@ func main() {
 				sendChannel,
 				cliArgs.OutputFolder,
 				func(outputDir string) (filextract.FileOutputWriter, error) {
-					return filextract.NewMultiThreadImageProcessor(outputDir, imgPipeline), nil
+					return imgprocessor.NewMultiThreadImageProcessor(outputDir, imgPipeline), nil
 				},
 			)
 			defer wg.Done()

@@ -1,4 +1,4 @@
-package filextract
+package imgprocessor
 
 import (
 	"bytes"
@@ -79,7 +79,7 @@ func (mtip *MultiThreadImageProcessor) run(fileName string, data []byte) (err er
 
 	var finalImgList []image.Image
 	if finalImgList, err = mtip.imgPipeline.Process(decodedImg); err != nil {
-		return
+		return err
 	}
 
 	for index, img := range finalImgList {
@@ -91,7 +91,7 @@ func (mtip *MultiThreadImageProcessor) run(fileName string, data []byte) (err er
 		)
 	}
 
-	return
+	return err
 }
 
 func (mtip *MultiThreadImageProcessor) Close() error {
