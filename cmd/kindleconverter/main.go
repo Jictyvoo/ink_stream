@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"log"
 	"log/slog"
 	"os"
@@ -42,6 +43,12 @@ func main() {
 		slog.Error("Failed to build pipeline", slog.String("error", err.Error()))
 		return
 	}
+
+	outWriterFactory, newWriterErr := fileWriterGenerator(cliArgs.OutputFormat)
+	if newWriterErr != nil {
+		slog.Error("Failed to create output writer", slog.String("error", newWriterErr.Error()))
+		os.Exit(1)
+	}
 	// Create worker pool
 	for range runtime.NumCPU() {
 		wg.Add(1)
@@ -50,7 +57,7 @@ func main() {
 				sendChannel,
 				cliArgs.OutputFolder,
 				func(outputDir string) (filextract.FileOutputWriter, error) {
-					fileWriter := outdirwriter.NewWriterHandle(outputDir)
+					fileWriter := outWriterFactory(outputDir)
 					return imgprocessor.NewMultiThreadImageProcessor(fileWriter, imgPipeline), nil
 				},
 			)
@@ -75,4 +82,21 @@ func main() {
 
 	wg.Wait()
 	log.Printf("Sent %d files", len(filenameList))
+}
+
+func fileWriterGenerator(
+	format OutputFormat,
+) (func(outputDir string) imgprocessor.FileWriter, error) {
+	switch format {
+	case FormatFolder:
+		return func(outputDir string) imgprocessor.FileWriter {
+			return outdirwriter.NewWriterHandle(outputDir)
+		}, nil
+	case FormatEpub:
+		return nil, errors.New("epub format not supported yet")
+	case FormatMobi:
+		return nil, errors.New("mobi format not supported yet")
+	default:
+		return nil, errors.New("unknown output format")
+	}
 }

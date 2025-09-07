@@ -19,8 +19,12 @@ func parseArgs(cliArgs *Options) {
 	cliArgs.StretchImage = flag.Bool("stretch", false, "Stretch image files")
 	cropLevel := flag.Uint("crop-level", uint(CropBasic), "Crop image level")
 
-	var targetDevice string
+	var (
+		targetDevice string
+		outFormat    string
+	)
 	flag.StringVar(&targetDevice, "profile", "", "Target device name")
+	flag.StringVar(&outFormat, "format", string(FormatEpub), "Output format")
 	flag.Parse()
 
 	cliArgs.CropLevel = CropBasic
@@ -28,21 +32,23 @@ func parseArgs(cliArgs *Options) {
 		cliArgs.CropLevel = CropStyle(*cropLevel)
 	}
 	cliArgs.TargetDevice = deviceprof.DeviceType(targetDevice)
+	cliArgs.OutputFormat = OutputFormat(outFormat)
 
 	if cliArgs.OutputFolder == "" {
 		cliArgs.OutputFolder = defaultOutputFolder(cliArgs.SourceFolder)
 	}
-	var cliErr error
+	cliErr := func(err error) {
+		flag.Usage()
+		log.Fatal(err)
+	}
 	if cliArgs.SourceFolder == "" {
-		cliErr = errors.New("target folder is required")
+		cliErr(errors.New("target folder is required"))
 	}
 	if cliArgs.TargetDevice == "" {
-		cliErr = errors.New("target device is required")
+		cliErr(errors.New("target device is required"))
 	}
-
-	if cliErr != nil {
-		flag.Usage()
-		log.Fatal(cliErr)
+	if cliArgs.OutputFormat == "" {
+		cliErr(errors.New("output format is required"))
 	}
 }
 

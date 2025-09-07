@@ -10,11 +10,20 @@ const (
 	CropAggressive
 )
 
+type OutputFormat string
+
+const (
+	FormatEpub   OutputFormat = "epub"
+	FormatMobi   OutputFormat = "mobi"
+	FormatFolder OutputFormat = "folder"
+)
+
 type Options struct {
 	SourceFolder string
 	OutputFolder string
 	TargetDevice deviceprof.DeviceType
 	CropLevel    CropStyle
+	OutputFormat OutputFormat
 	RotateImage  bool
 	StretchImage *bool
 	AddMargins   *bool
