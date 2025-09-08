@@ -1,0 +1,83 @@
+@page {
+    margin: 0;
+}
+
+body {
+    display: block;
+    margin: 0;
+    padding: 0;
+}
+
+#panel-view {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+}
+
+#panel-top {
+    top: 0;
+    width: 100%;
+    height: 50%;
+}
+
+#panel-bottom {
+    bottom: 0;
+    width: 100%;
+    height: 50%;
+}
+
+#panel-left {
+    left: 0;
+    width: 49.5%;
+    height: 100%;
+    float: left;
+}
+
+#panel-right {
+    right: 0;
+    width: 49.5%;
+    height: 100%;
+    float: right;
+}
+
+#panel-top-left {
+    top: 0;
+    left: 0;
+    width: 49.5%;
+    height: 50%;
+    float: left;
+}
+
+#panel-top-right {
+    top: 0;
+    right: 0;
+    width: 49.5%;
+    height: 50%;
+    float: right;
+}
+
+#panel-bottom-left {
+    bottom: 0;
+    left: 0;
+    width: 49.5%;
+    height: 50%;
+    float: left;
+}
+
+#panel-bottom-right {
+    bottom: 0;
+    right: 0;
+    width: 49.5%;
+    height: 50%;
+    float: right;
+}
+
+.panel-image {
+    width: 100%;
+    height: 100%;
+    top: 0;
+    position: absolute;
+    display: none;
+}

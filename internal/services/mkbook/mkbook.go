@@ -67,6 +67,23 @@ func (em *EpubMounter) AddImagePage(
 	pageData tmplepub.ImageData,
 	sectionTitle, fileName string,
 ) error {
+	// Provide sensible defaults so the page renders even if caller omitted details
+	if len(pageData.PanelLinks) == 0 {
+		pageData.PanelLinks = []tmplepub.PanelLink{
+			{ID: "panel-top-left", TargetID: "panel-top-left-panel", Ordinal: 2},
+			{ID: "panel-top-right", TargetID: "panel-top-right-panel", Ordinal: 1},
+			{ID: "panel-bottom-left", TargetID: "panel-bottom-left-panel", Ordinal: 4},
+			{ID: "panel-bottom-right", TargetID: "panel-bottom-right-panel", Ordinal: 3},
+		}
+	}
+	if len(pageData.PanelImages) == 0 {
+		pageData.PanelImages = []tmplepub.PanelImage{
+			{ID: "panel-top-left", Style: "position:absolute;left:0;top:0;"},
+			{ID: "panel-top-right", Style: "position:absolute;right:0;top:0;"},
+			{ID: "panel-bottom-left", Style: "position:absolute;left:0;bottom:0;"},
+			{ID: "panel-bottom-right", Style: "position:absolute;right:0;bottom:0;"},
+		}
+	}
 	// If viewport dimensions were not provided, use image dimensions if available
 	if pageData.ViewportWidth == 0 && pageData.ImageWidth > 0 {
 		pageData.ViewportWidth = pageData.ImageWidth
