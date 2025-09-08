@@ -6,25 +6,25 @@ import (
 	"golang.org/x/image/draw"
 
 	"github.com/Jictyvoo/ink_stream/internal/imageparser"
-	"github.com/Jictyvoo/ink_stream/pkg/deviceprof"
+	"github.com/Jictyvoo/ink_stream/pkg/inktypes"
 )
 
 var _ imageparser.PipeStep = (*StepRescaleImage)(nil)
 
 type StepRescaleImage struct {
-	resolution deviceprof.Resolution
+	resolution inktypes.ImageDimensions
 	isPixelArt bool
 	imageparser.BaseImageStep
 }
 
-func NewStepRescale(resolution deviceprof.Resolution, allowStretch bool) *StepRescaleImage {
+func NewStepRescale(resolution inktypes.ImageDimensions, allowStretch bool) *StepRescaleImage {
 	return &StepRescaleImage{
 		resolution: resolution,
 	}
 }
 
 func NewStepThumbnail() StepRescaleImage {
-	return StepRescaleImage{resolution: deviceprof.Resolution{Width: 300, Height: 470}}
+	return StepRescaleImage{resolution: inktypes.ImageDimensions{Width: 300, Height: 470}}
 }
 
 func (step StepRescaleImage) StepID() string {
@@ -52,5 +52,5 @@ func (step StepRescaleImage) PerformExec(
 	)
 
 	state.Img = resized
-	return
+	return err
 }

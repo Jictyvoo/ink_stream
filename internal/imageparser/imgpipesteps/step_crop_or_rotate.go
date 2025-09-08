@@ -6,19 +6,20 @@ import (
 
 	"github.com/Jictyvoo/ink_stream/internal/imageparser"
 	"github.com/Jictyvoo/ink_stream/pkg/imgutils"
+	"github.com/Jictyvoo/ink_stream/pkg/inktypes"
 )
 
 var _ imageparser.PipeStep = (*StepCropOrRotateImage)(nil)
 
 type StepCropOrRotateImage struct {
 	rotateImage bool
-	orientation imgutils.ImageOrientation
+	orientation inktypes.ImageOrientation
 	imageparser.BaseImageStep
 }
 
 func NewStepCropOrRotate(
 	rotate bool, palette color.Palette,
-	orientation imgutils.ImageOrientation,
+	orientation inktypes.ImageOrientation,
 ) *StepCropOrRotateImage {
 	return &StepCropOrRotateImage{
 		rotateImage:   rotate,
@@ -47,12 +48,12 @@ func (step StepCropOrRotateImage) PerformExec(
 
 			originalImg := state.Img
 			switch step.orientation {
-			case imgutils.OrientationLandscape:
+			case inktypes.OrientationLandscape:
 				state.SubImages = []image.Image{
 					imgutils.CropImage(originalImg, halfBounds.Top),
 					imgutils.CropImage(originalImg, halfBounds.Bottom),
 				}
-			case imgutils.OrientationPortrait:
+			case inktypes.OrientationPortrait:
 				state.SubImages = []image.Image{
 					imgutils.CropImage(originalImg, halfBounds.Left),
 					imgutils.CropImage(originalImg, halfBounds.Right),
@@ -61,5 +62,5 @@ func (step StepCropOrRotateImage) PerformExec(
 		}
 	}
 
-	return
+	return err
 }

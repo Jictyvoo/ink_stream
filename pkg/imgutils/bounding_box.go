@@ -3,6 +3,8 @@ package imgutils
 import (
 	"image"
 	"image/color"
+
+	"github.com/Jictyvoo/ink_stream/pkg/inktypes"
 )
 
 type BoxOptions uint8
@@ -154,18 +156,18 @@ func MarginBox(bounds image.Rectangle, percentage float64) image.Rectangle {
 }
 
 func HalfSplit(
-	inputBonds image.Rectangle, imgOrientation ImageOrientation,
+	inputBonds image.Rectangle, imgOrientation inktypes.ImageOrientation,
 ) (halfBounds Margins[image.Rectangle]) {
 	switch imgOrientation {
-	case OrientationLandscape:
+	case inktypes.OrientationLandscape:
 		midX := inputBonds.Min.X + inputBonds.Dx()/2
 		halfBounds.Left = image.Rect(inputBonds.Min.X, inputBonds.Min.Y, midX, inputBonds.Max.Y)
 		halfBounds.Right = image.Rect(midX, inputBonds.Min.Y, inputBonds.Max.X, inputBonds.Max.Y)
-	case OrientationPortrait:
+	case inktypes.OrientationPortrait:
 		midY := inputBonds.Min.Y + inputBonds.Dy()/2
 		halfBounds.Top = image.Rect(inputBonds.Min.X, inputBonds.Min.Y, inputBonds.Max.X, midY)
 		halfBounds.Bottom = image.Rect(inputBonds.Min.X, midY, inputBonds.Max.X, inputBonds.Max.Y)
 	}
 
-	return
+	return halfBounds
 }

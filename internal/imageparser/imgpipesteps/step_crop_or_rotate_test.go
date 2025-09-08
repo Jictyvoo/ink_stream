@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/Jictyvoo/ink_stream/internal/imageparser"
-	"github.com/Jictyvoo/ink_stream/pkg/imgutils"
 	"github.com/Jictyvoo/ink_stream/pkg/imgutils/testimgs"
+	"github.com/Jictyvoo/ink_stream/pkg/inktypes"
 )
 
 func TestStepCropOrRotateImage_PerformExec(t *testing.T) {
@@ -16,14 +16,14 @@ func TestStepCropOrRotateImage_PerformExec(t *testing.T) {
 		name                string
 		initialBounds       image.Rectangle
 		rotateImage         bool
-		expectedOrientation imgutils.ImageOrientation
+		expectedOrientation inktypes.ImageOrientation
 		expectedBounds      []image.Rectangle
 	}{
 		{
 			name:                "Rotate Portrait Image",
 			initialBounds:       image.Rect(0, 0, 200, 100),
 			rotateImage:         true,
-			expectedOrientation: imgutils.OrientationPortrait,
+			expectedOrientation: inktypes.OrientationPortrait,
 			expectedBounds: []image.Rectangle{
 				image.Rect(0, 0, 100, 200),
 			}, // Dimensions swapped after rotation
@@ -32,7 +32,7 @@ func TestStepCropOrRotateImage_PerformExec(t *testing.T) {
 			name:                "Crop Portrait Image without Rotation",
 			initialBounds:       image.Rect(0, 0, 200, 100),
 			rotateImage:         false,
-			expectedOrientation: imgutils.OrientationPortrait,
+			expectedOrientation: inktypes.OrientationPortrait,
 			expectedBounds: []image.Rectangle{
 				image.Rect(0, 0, 100, 100),
 				image.Rect(100, 0, 200, 100),

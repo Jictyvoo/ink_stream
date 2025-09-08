@@ -7,19 +7,19 @@ import (
 	"golang.org/x/image/draw"
 
 	"github.com/Jictyvoo/ink_stream/internal/imageparser"
-	"github.com/Jictyvoo/ink_stream/pkg/deviceprof"
 	"github.com/Jictyvoo/ink_stream/pkg/imgutils"
+	"github.com/Jictyvoo/ink_stream/pkg/inktypes"
 )
 
 var _ imageparser.PipeStep = (*StepMarginWrapImage)(nil)
 
 type StepMarginWrapImage struct {
-	resolution  deviceprof.Resolution
+	resolution  inktypes.ImageDimensions
 	marginColor color.Color
 	imageparser.BaseImageStep
 }
 
-func NewStepMarginWrap(resolution deviceprof.Resolution) *StepMarginWrapImage {
+func NewStepMarginWrap(resolution inktypes.ImageDimensions) *StepMarginWrapImage {
 	return &StepMarginWrapImage{
 		resolution:  resolution,
 		marginColor: color.White,
@@ -43,16 +43,16 @@ func (step StepMarginWrapImage) PerformExec(
 		if imgOrientation := imgutils.NewOrientation(imgBounds); expectedOrientation != imgOrientation {
 			halfBounds := imgutils.HalfSplit(imgBounds, imgOrientation)
 			switch expectedOrientation { // Temporarily split
-			case imgutils.OrientationPortrait:
+			case inktypes.OrientationPortrait:
 				imgBounds = halfBounds.Left
-			case imgutils.OrientationLandscape:
+			case inktypes.OrientationLandscape:
 				imgBounds = halfBounds.Top
 			}
 		}
 	}
 	margins := step.calculateNewDimensions(imgBounds.Bounds())
 	if margins.w == 0 && margins.h == 0 {
-		return
+		return err
 	}
 	if imgBounds != origBounds {
 		margins.w *= 2
@@ -91,7 +91,7 @@ func (step StepMarginWrapImage) PerformExec(
 	)
 
 	state.Img = paddedImage
-	return
+	return err
 }
 
 func drawMargins(
@@ -134,7 +134,7 @@ func (step StepMarginWrapImage) calculateNewDimensions(
 		if actualWidth == 0 && actualHeight == 0 {
 			margins.w = desiredWidth
 			margins.h = desiredHeight
-			return
+			return margins
 		}
 	}
 
@@ -152,5 +152,5 @@ func (step StepMarginWrapImage) calculateNewDimensions(
 	}
 	// else: aspect ratios match; no margin needed
 
-	return
+	return margins
 }

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/Jictyvoo/ink_stream/pkg/imgutils/testimgs"
+	"github.com/Jictyvoo/ink_stream/pkg/inktypes"
 )
 
 // TestCropBox tests the CropBox function
@@ -105,13 +106,13 @@ func TestHalfSplit(t *testing.T) {
 	tests := []struct {
 		name        string
 		inputRect   image.Rectangle
-		orientation ImageOrientation
+		orientation inktypes.ImageOrientation
 		expected    Margins[image.Rectangle]
 	}{
 		{
 			name:        "Landscape split",
 			inputRect:   image.Rect(0, 0, 100, 50),
-			orientation: OrientationLandscape,
+			orientation: inktypes.OrientationLandscape,
 			expected: Margins[image.Rectangle]{
 				Left:  image.Rect(0, 0, 50, 50),
 				Right: image.Rect(50, 0, 100, 50),
@@ -120,7 +121,7 @@ func TestHalfSplit(t *testing.T) {
 		{
 			name:        "Portrait split",
 			inputRect:   image.Rect(0, 0, 50, 100),
-			orientation: OrientationPortrait,
+			orientation: inktypes.OrientationPortrait,
 			expected: Margins[image.Rectangle]{
 				Top:    image.Rect(0, 0, 50, 50),
 				Bottom: image.Rect(0, 50, 50, 100),
@@ -129,7 +130,7 @@ func TestHalfSplit(t *testing.T) {
 		{
 			name:        "Odd width landscape split",
 			inputRect:   image.Rect(0, 0, 101, 50),
-			orientation: OrientationLandscape,
+			orientation: inktypes.OrientationLandscape,
 			expected: Margins[image.Rectangle]{
 				Left:  image.Rect(0, 0, 50, 50),
 				Right: image.Rect(50, 0, 101, 50),
@@ -138,7 +139,7 @@ func TestHalfSplit(t *testing.T) {
 		{
 			name:        "Odd height portrait split",
 			inputRect:   image.Rect(0, 0, 50, 101),
-			orientation: OrientationPortrait,
+			orientation: inktypes.OrientationPortrait,
 			expected: Margins[image.Rectangle]{
 				Top:    image.Rect(0, 0, 50, 50),
 				Bottom: image.Rect(0, 50, 50, 101),
@@ -147,7 +148,7 @@ func TestHalfSplit(t *testing.T) {
 		{
 			name:        "Zero area rectangle",
 			inputRect:   image.Rect(0, 0, 0, 0),
-			orientation: OrientationLandscape,
+			orientation: inktypes.OrientationLandscape,
 			expected: Margins[image.Rectangle]{
 				Left:  image.Rect(0, 0, 0, 0),
 				Right: image.Rect(0, 0, 0, 0),

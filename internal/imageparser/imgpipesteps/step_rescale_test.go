@@ -6,9 +6,9 @@ import (
 	"testing"
 
 	"github.com/Jictyvoo/ink_stream/internal/imageparser"
-	"github.com/Jictyvoo/ink_stream/pkg/deviceprof"
 	"github.com/Jictyvoo/ink_stream/pkg/imgutils"
 	"github.com/Jictyvoo/ink_stream/pkg/imgutils/testimgs"
+	"github.com/Jictyvoo/ink_stream/pkg/inktypes"
 )
 
 func TestStepRescaleImage_PerformExec(t *testing.T) {
@@ -17,21 +17,24 @@ func TestStepRescaleImage_PerformExec(t *testing.T) {
 	)
 	testCases := []struct {
 		name                  string
-		originalSize          deviceprof.Resolution
-		targetSize            deviceprof.Resolution
+		originalSize          inktypes.ImageDimensions
+		targetSize            inktypes.ImageDimensions
 		fillWith              color.Color
 		inputImg, expectedImg image.Image
 	}{
 		{
 			name:         "Empty input",
-			originalSize: deviceprof.Resolution{Width: 0, Height: 0},
-			targetSize:   deviceprof.Resolution{Width: 2, Height: 2},
+			originalSize: inktypes.ImageDimensions{Width: 0, Height: 0},
+			targetSize:   inktypes.ImageDimensions{Width: 2, Height: 2},
 		},
 		{
 			name: "Keep same size",
-			targetSize: func() deviceprof.Resolution {
+			targetSize: func() inktypes.ImageDimensions {
 				bounds := imgFixtures[0].Bounds()
-				return deviceprof.Resolution{Width: uint(bounds.Dx()), Height: uint(bounds.Dy())}
+				return inktypes.ImageDimensions{
+					Width:  uint16(bounds.Dx()),
+					Height: uint16(bounds.Dy()),
+				}
 			}(),
 			fillWith:    color.White,
 			inputImg:    imgFixtures[0],
@@ -40,45 +43,45 @@ func TestStepRescaleImage_PerformExec(t *testing.T) {
 		{
 			name:       "Make image be 0",
 			inputImg:   imgFixtures[1],
-			targetSize: deviceprof.Resolution{Width: 0, Height: 0},
+			targetSize: inktypes.ImageDimensions{Width: 0, Height: 0},
 		},
 		{
 			name:         "Increase image size by x6",
-			originalSize: deviceprof.Resolution{Width: 7, Height: 7},
-			targetSize:   deviceprof.Resolution{Width: 42, Height: 42},
+			originalSize: inktypes.ImageDimensions{Width: 7, Height: 7},
+			targetSize:   inktypes.ImageDimensions{Width: 42, Height: 42},
 			fillWith:     color.White,
 		},
 		{
 			name:         "Multiply only width size",
-			originalSize: deviceprof.Resolution{Width: 1, Height: 1},
-			targetSize:   deviceprof.Resolution{Width: 6, Height: 1},
+			originalSize: inktypes.ImageDimensions{Width: 1, Height: 1},
+			targetSize:   inktypes.ImageDimensions{Width: 6, Height: 1},
 			fillWith:     color.RGBA{R: 128, G: 63, B: 16, A: 255},
 		},
 		{
 			name:         "Divide all dimensions by 3",
-			originalSize: deviceprof.Resolution{Width: 9, Height: 27},
-			targetSize:   deviceprof.Resolution{Width: 3, Height: 9},
+			originalSize: inktypes.ImageDimensions{Width: 9, Height: 27},
+			targetSize:   inktypes.ImageDimensions{Width: 3, Height: 9},
 			fillWith:     color.RGBA{R: 8, G: 127, B: 31, A: 255},
 		},
 		{
 			name:         "Target Height 8x smaller", // Must add padding before resize
-			originalSize: deviceprof.Resolution{Width: 4, Height: 32},
-			targetSize:   deviceprof.Resolution{Width: 4, Height: 4},
+			originalSize: inktypes.ImageDimensions{Width: 4, Height: 32},
+			targetSize:   inktypes.ImageDimensions{Width: 4, Height: 4},
 			fillWith:     color.RGBA{R: 0, G: 255, B: 0, A: 255},
 		},
 	}
 	for _, tCase := range testCases {
 		t.Run(tCase.name, func(t *testing.T) {
 			step := NewStepRescale(tCase.targetSize, false)
-			mockImage := func(size deviceprof.Resolution, fillValue color.Color) image.Image {
+			mockImage := func(size inktypes.ImageDimensions, fillValue color.Color) image.Image {
 				img := image.NewRGBA(
 					image.Rect(0, 0, int(size.Width), int(size.Height)),
 				)
 				if fillValue == nil {
 					fillValue = color.RGBA{}
 				}
-				for y := uint(0); y < size.Height; y++ {
-					for x := uint(0); x < size.Width; x++ {
+				for y := uint16(0); y < size.Height; y++ {
+					for x := uint16(0); x < size.Width; x++ {
 						img.Set(int(x), int(y), fillValue)
 					}
 				}
