@@ -4,7 +4,9 @@ import (
 	"io"
 )
 
+type WriterCallback func(writer io.Writer) error
+
 type FileWriter interface {
-	Handler(filename string, f func(writer io.Writer) error) error
+	Handler(filename string, f WriterCallback) error
 	Flush() error
 }

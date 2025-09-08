@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/go-shiori/go-epub"
 
+	"github.com/Jictyvoo/ink_stream/internal/services/imgprocessor"
 	"github.com/Jictyvoo/ink_stream/internal/services/mkbook/tmplepub"
 )
 
@@ -48,7 +48,7 @@ func (em *EpubMounter) registerMainCSS() (err error) {
 	return err
 }
 
-func (em *EpubMounter) Handler(filename string, callback func(writer io.Writer) error) error {
+func (em *EpubMounter) Handler(filename string, callback imgprocessor.WriterCallback) error {
 	var buf bytes.Buffer
 	if err := callback(&buf); err != nil {
 		return fmt.Errorf("error while processing file %s: %w", filename, err)

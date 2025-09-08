@@ -3,13 +3,13 @@ package outdirwriter
 import (
 	"errors"
 	"fmt"
-	"io"
 	"log"
 	"os"
 	"path/filepath"
 	"strings"
 	"sync/atomic"
 
+	"github.com/Jictyvoo/ink_stream/internal/services/imgprocessor"
 	"github.com/Jictyvoo/ink_stream/internal/utils"
 )
 
@@ -66,7 +66,7 @@ func (wh WriterHandle) subFolderName(absFilename string) (directoryName string) 
 	return directoryName
 }
 
-func (wh WriterHandle) Handler(filename string, callback func(writer io.Writer) error) error {
+func (wh WriterHandle) Handler(filename string, callback imgprocessor.WriterCallback) error {
 	destinationFolder := wh.outputDirectory
 	if fileIsCover(filename) {
 		destinationFolder = wh.coverDirectoryName
