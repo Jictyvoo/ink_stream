@@ -2,9 +2,11 @@ package mkbook
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/go-shiori/go-epub"
@@ -18,13 +20,18 @@ type EpubMounter struct {
 	outDir        string
 }
 
-func NewEpubMounter(title string) (*EpubMounter, error) {
+func NewEpubMounter(outputDirectory string) (*EpubMounter, error) {
+	title := filepath.Base(outputDirectory)
+	if title == "." {
+		asSha := sha256.Sum256([]byte(outputDirectory))
+		title = string(asSha[:16])
+	}
 	e, err := epub.NewEpub(title)
 	if err != nil {
 		return nil, err
 	}
 
-	epubMounter := &EpubMounter{epub: e, outDir: title}
+	epubMounter := &EpubMounter{epub: e, outDir: outputDirectory}
 	err = epubMounter.registerMainCSS()
 
 	return epubMounter, err
@@ -60,12 +67,20 @@ func (em *EpubMounter) AddImagePage(
 	pageData tmplepub.ImageData,
 	sectionTitle, fileName string,
 ) error {
+	// If viewport dimensions were not provided, use image dimensions if available
+	if pageData.ViewportWidth == 0 && pageData.ImageWidth > 0 {
+		pageData.ViewportWidth = pageData.ImageWidth
+	}
+	if pageData.ViewportHeight == 0 && pageData.ImageHeight > 0 {
+		pageData.ViewportHeight = pageData.ImageHeight
+	}
+
 	tmpl := tmplepub.EpubImagePage()
 	var buf strings.Builder
 	if err := tmpl.Execute(&buf, pageData); err != nil {
 		return err
 	}
-	// Add the rendered XHTML as a section to the EPUB
+	// Add the rendered XHTML body as a section; go-epub will wrap it with full XHTML
 	_, err := em.epub.AddSection(buf.String(), sectionTitle, fileName, em.styleLocation)
 	return err
 }

@@ -4,7 +4,6 @@ package tmplepub
 // Keep fields exported so html/template can access them.
 // Only ImageSrc is strictly required for minimal rendering; others are optional.
 type ImageData struct {
-	BodyStyle      string
 	TopMargin      int
 	ImageWidth     int
 	ImageHeight    int
