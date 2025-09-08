@@ -18,6 +18,7 @@ type EpubMounter struct {
 	epub          *epub.Epub
 	styleLocation string
 	outDir        string
+	coverInfo     struct{ location, name string }
 }
 
 func NewEpubMounter(outputDirectory string) (*EpubMounter, error) {
@@ -58,6 +59,10 @@ func (em *EpubMounter) Handler(filename string, callback imgprocessor.WriterCall
 		return fmt.Errorf("error while writing file `%s` to epub: %w", filename, err)
 	}
 
+	if em.coverInfo.name == "" || filename < em.coverInfo.name {
+		em.coverInfo.name = filename
+		em.coverInfo.location = location
+	}
 	// Add an image page to the EPUB using the written filename as the image source
 	pageData := tmplepub.ImageData{ImageSrc: location}
 	return em.AddImagePage(pageData, filename, filename)
@@ -86,6 +91,10 @@ func (em *EpubMounter) AddImagePage(
 }
 
 func (em *EpubMounter) Flush() error {
+	if err := em.epub.SetCover(em.coverInfo.location, ""); err != nil {
+		return err
+	}
+
 	file, err := os.Create(em.outDir + ".epub")
 	if err != nil {
 		return err
