@@ -6,38 +6,39 @@ import (
 	"testing"
 
 	"github.com/Jictyvoo/ink_stream/pkg/imgutils/testimgs"
+	"github.com/Jictyvoo/ink_stream/pkg/inktypes"
 )
 
 func TestNewOrientation(t *testing.T) {
 	tests := []struct {
 		name     string
 		rect     image.Rectangle
-		expected ImageOrientation
+		expected inktypes.ImageOrientation
 	}{
 		{
 			name:     "Landscape orientation",
 			rect:     image.Rect(0, 0, 200, 100),
-			expected: OrientationLandscape,
+			expected: inktypes.OrientationLandscape,
 		},
 		{
 			name:     "Portrait orientation",
 			rect:     image.Rect(0, 0, 100, 200),
-			expected: OrientationPortrait,
+			expected: inktypes.OrientationPortrait,
 		},
 		{
 			name:     "Square image treated as portrait",
 			rect:     image.Rect(0, 0, 100, 100),
-			expected: OrientationPortrait, // Since Dx() == Dy(), it defaults to Portrait
+			expected: inktypes.OrientationPortrait, // Since Dx() == Dy(), it defaults to Portrait
 		},
 		{
 			name:     "Negative coordinates, still landscape",
 			rect:     image.Rect(-100, -50, 100, 50),
-			expected: OrientationLandscape,
+			expected: inktypes.OrientationLandscape,
 		},
 		{
 			name:     "Zero area image, portrait default",
 			rect:     image.Rect(0, 0, 0, 0),
-			expected: OrientationPortrait,
+			expected: inktypes.OrientationPortrait,
 		},
 	}
 

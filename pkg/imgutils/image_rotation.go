@@ -3,19 +3,14 @@ package imgutils
 import (
 	"image"
 	"image/draw"
+
+	"github.com/Jictyvoo/ink_stream/pkg/inktypes"
 )
 
-type ImageOrientation uint8
-
-const (
-	OrientationPortrait ImageOrientation = iota
-	OrientationLandscape
-)
-
-func NewOrientation(imgBounds image.Rectangle) ImageOrientation {
-	imgOrientation := OrientationPortrait
+func NewOrientation(imgBounds image.Rectangle) inktypes.ImageOrientation {
+	imgOrientation := inktypes.OrientationPortrait
 	if imgBounds.Dx() > imgBounds.Dy() {
-		imgOrientation = OrientationLandscape
+		imgOrientation = inktypes.OrientationLandscape
 	}
 
 	return imgOrientation
