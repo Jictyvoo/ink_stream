@@ -132,8 +132,8 @@ func (step StepMarginWrapImage) calculateNewDimensions(
 	// Take some edge cases before floating calculation
 	{
 		if actualWidth == 0 && actualHeight == 0 {
-			margins.w = desiredWidth
-			margins.h = desiredHeight
+			margins.w = uint(desiredWidth)
+			margins.h = uint(desiredHeight)
 			return margins
 		}
 	}
