@@ -18,16 +18,19 @@ const (
 	FormatFolder OutputFormat = "folder"
 )
 
+type ReadDirection string
+
 type Options struct {
-	SourceFolder string
-	OutputFolder string
-	TargetDevice deviceprof.DeviceType
-	CropLevel    CropStyle
-	OutputFormat OutputFormat
-	RotateImage  bool
-	StretchImage *bool
-	AddMargins   *bool
-	ColoredPages bool
+	SourceFolder  string
+	OutputFolder  string
+	TargetDevice  deviceprof.DeviceType
+	CropLevel     CropStyle
+	OutputFormat  OutputFormat
+	ReadDirection ReadDirection
+	RotateImage   bool
+	StretchImage  *bool
+	AddMargins    *bool
+	ColoredPages  bool
 }
 
 func (opts Options) AllowStretch() bool {

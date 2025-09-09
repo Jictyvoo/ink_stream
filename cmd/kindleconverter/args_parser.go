@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/Jictyvoo/ink_stream/pkg/deviceprof"
+	"github.com/Jictyvoo/ink_stream/pkg/inktypes"
 )
 
 func parseArgs(cliArgs *Options) {
@@ -20,11 +21,16 @@ func parseArgs(cliArgs *Options) {
 	cropLevel := flag.Uint("crop-level", uint(CropBasic), "Crop image level")
 
 	var (
-		targetDevice string
-		outFormat    string
+		targetDevice  string
+		outFormat     string
+		readDirection string
 	)
 	flag.StringVar(&targetDevice, "profile", "", "Target device name")
 	flag.StringVar(&outFormat, "format", string(FormatEpub), "Output format")
+	flag.StringVar(
+		&readDirection, "read-direction",
+		inktypes.ReadLeftToRight.String(), "Read direction used as epub PPD",
+	)
 	flag.Parse()
 
 	cliArgs.CropLevel = CropBasic
@@ -37,6 +43,7 @@ func parseArgs(cliArgs *Options) {
 	if cliArgs.OutputFolder == "" {
 		cliArgs.OutputFolder = defaultOutputFolder(cliArgs.SourceFolder)
 	}
+	cliArgs.ReadDirection = ReadDirection(readDirection)
 	cliErr := func(err error) {
 		flag.Usage()
 		log.Fatal(err)
