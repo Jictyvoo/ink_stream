@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
+	"sync"
 
 	"github.com/go-shiori/go-epub"
 
@@ -14,11 +16,18 @@ import (
 	"github.com/Jictyvoo/ink_stream/internal/services/mkbook/tmplepub"
 )
 
+type imageSectionData struct {
+	pageData               tmplepub.ImageData
+	sectionTitle, fileName string
+}
+
 type EpubMounter struct {
 	epub          *epub.Epub
 	styleLocation string
 	outDir        string
 	coverInfo     struct{ location, name string }
+	imageSections []imageSectionData
+	sync.Mutex
 }
 
 func NewEpubMounter(outputDirectory string) (*EpubMounter, error) {
@@ -62,10 +71,6 @@ func (em *EpubMounter) Handler(filename string, callback imgprocessor.WriterCall
 		return fmt.Errorf("error while writing file `%s` to epub: %w", filename, err)
 	}
 
-	if em.coverInfo.name == "" || filename < em.coverInfo.name {
-		em.coverInfo.name = filename
-		em.coverInfo.location = location
-	}
 	// Add an image page to the EPUB using the written filename as the image source
 	pageData := tmplepub.ImageData{
 		ImageSrc:    location,
@@ -87,19 +92,46 @@ func (em *EpubMounter) AddImagePage(
 		pageData.ViewportHeight = pageData.ImageHeight
 	}
 
-	tmpl := tmplepub.EpubImagePage()
-	var buf strings.Builder
-	if err := tmpl.Execute(&buf, pageData); err != nil {
-		return err
+	em.Lock()
+	defer em.Unlock()
+
+	if em.coverInfo.name == "" || fileName < em.coverInfo.name {
+		em.coverInfo.name = fileName
+		em.coverInfo.location = pageData.ImageSrc
 	}
-	// Add the rendered XHTML body as a section; go-epub will wrap it with full XHTML
-	_, err := em.epub.AddSection(buf.String(), sectionTitle, fileName, em.styleLocation)
-	return err
+	em.imageSections = append(em.imageSections, imageSectionData{
+		pageData:     pageData,
+		sectionTitle: sectionTitle,
+		fileName:     fileName,
+	})
+	return nil
 }
 
 func (em *EpubMounter) Flush() error {
 	if err := em.epub.SetCover(em.coverInfo.location, ""); err != nil {
 		return err
+	}
+
+	slices.SortFunc(em.imageSections, func(a, b imageSectionData) int {
+		return strings.Compare(a.fileName, b.fileName)
+	})
+
+	tmpl := tmplepub.EpubImagePage()
+	for _, imgSection := range em.imageSections {
+		var buf strings.Builder
+		if err := tmpl.Execute(&buf, imgSection.pageData); err != nil {
+			return err
+		}
+		// Add the rendered XHTML body as a section; go-epub will wrap it with full XHTML
+		_, err := em.epub.AddSection(
+			buf.String(),
+			imgSection.sectionTitle,
+			imgSection.fileName,
+			em.styleLocation,
+		)
+		if err != nil {
+			return fmt.Errorf("error while adding section: %w", err)
+		}
 	}
 
 	file, err := os.Create(em.outDir + ".epub")
