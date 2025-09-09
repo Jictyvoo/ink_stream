@@ -19,6 +19,7 @@ import (
 	"github.com/Jictyvoo/ink_stream/internal/services/mkbook"
 	"github.com/Jictyvoo/ink_stream/internal/services/outdirwriter"
 	"github.com/Jictyvoo/ink_stream/internal/utils"
+	"github.com/Jictyvoo/ink_stream/pkg/inktypes"
 )
 
 func main() {
@@ -46,7 +47,9 @@ func main() {
 		return
 	}
 
-	outWriterFactory, newWriterErr := fileWriterGenerator(cliArgs.OutputFormat)
+	outWriterFactory, newWriterErr := fileWriterGenerator(
+		cliArgs.OutputFormat, cliArgs.ReadDirection,
+	)
 	if newWriterErr != nil {
 		slog.Error("Failed to create output writer", slog.String("error", newWriterErr.Error()))
 		os.Exit(1)
@@ -96,8 +99,12 @@ func main() {
 }
 
 func fileWriterGenerator(
-	format OutputFormat,
+	format OutputFormat, readDirection ReadDirection,
 ) (func(outputDir string) (imgprocessor.FileWriter, error), error) {
+	direction := inktypes.NewReadDirection(string(readDirection))
+	if direction == inktypes.ReadUnknown {
+		return nil, fmt.Errorf("unknown read direction `%s`", readDirection)
+	}
 	switch format {
 	case FormatFolder:
 		return func(outputDir string) (imgprocessor.FileWriter, error) {
@@ -105,7 +112,7 @@ func fileWriterGenerator(
 		}, nil
 	case FormatEpub:
 		return func(outputDir string) (imgprocessor.FileWriter, error) {
-			return mkbook.NewEpubMounter(outputDir)
+			return mkbook.NewEpubMounter(outputDir, direction)
 		}, nil
 	case FormatMobi:
 		return nil, errors.New("mobi format not supported yet")
