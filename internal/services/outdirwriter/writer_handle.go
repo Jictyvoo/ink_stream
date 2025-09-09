@@ -81,7 +81,8 @@ func (wh WriterHandle) Handler(filename string, callback imgprocessor.WriterCall
 	}
 	defer writeFile.Close()
 
-	return callback(writeFile)
+	_, err = callback(writeFile)
+	return err
 }
 
 func (wh WriterHandle) Flush() (err error) {

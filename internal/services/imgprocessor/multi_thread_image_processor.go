@@ -14,6 +14,7 @@ import (
 
 	"github.com/Jictyvoo/ink_stream/internal/imageparser"
 	"github.com/Jictyvoo/ink_stream/internal/utils"
+	"github.com/Jictyvoo/ink_stream/pkg/inktypes"
 )
 
 type (
@@ -84,8 +85,17 @@ func (mtip *MultiThreadImageProcessor) run(fileName string, data []byte) (err er
 	for index, img := range finalImgList {
 		err = mtip.fileWriter.Handler(
 			fileName+"__"+strconv.Itoa(index)+".jpeg",
-			func(writer io.Writer) error {
-				return jpeg.Encode(writer, img, &jpeg.Options{Quality: 85})
+			func(writer io.Writer) (metadata inktypes.ImageMetadata, err error) {
+				imgBounds := img.Bounds()
+				metadata = inktypes.ImageMetadata{
+					ImageDimensions: inktypes.ImageDimensions{
+						Width:  uint16(imgBounds.Dx()),
+						Height: uint16(imgBounds.Dy()),
+					},
+					Format: inktypes.FormatJPEG,
+				}
+				err = jpeg.Encode(writer, img, &jpeg.Options{Quality: 85})
+				return metadata, err
 			},
 		)
 	}

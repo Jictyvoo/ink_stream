@@ -51,10 +51,13 @@ func (em *EpubMounter) registerMainCSS() (err error) {
 
 func (em *EpubMounter) Handler(filename string, callback imgprocessor.WriterCallback) error {
 	var buf bytes.Buffer
-	if err := callback(&buf); err != nil {
+	imgMetadata, err := callback(&buf)
+	if err != nil {
 		return fmt.Errorf("error while processing file %s: %w", filename, err)
 	}
-	location, err := writeBinaryFile(filename, buf.Bytes(), em.epub.AddImage)
+
+	var location string
+	location, err = writeBinaryFile(filename, buf.Bytes(), em.epub.AddImage)
 	if err != nil {
 		return fmt.Errorf("error while writing file `%s` to epub: %w", filename, err)
 	}
@@ -64,7 +67,11 @@ func (em *EpubMounter) Handler(filename string, callback imgprocessor.WriterCall
 		em.coverInfo.location = location
 	}
 	// Add an image page to the EPUB using the written filename as the image source
-	pageData := tmplepub.ImageData{ImageSrc: location}
+	pageData := tmplepub.ImageData{
+		ImageSrc:    location,
+		ImageWidth:  int(imgMetadata.Width),
+		ImageHeight: int(imgMetadata.Height),
+	}
 	return em.AddImagePage(pageData, filename, filename)
 }
 
