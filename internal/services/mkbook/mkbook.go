@@ -14,6 +14,7 @@ import (
 
 	"github.com/Jictyvoo/ink_stream/internal/services/imgprocessor"
 	"github.com/Jictyvoo/ink_stream/internal/services/mkbook/tmplepub"
+	"github.com/Jictyvoo/ink_stream/pkg/inktypes"
 )
 
 type imageSectionData struct {
@@ -23,14 +24,16 @@ type imageSectionData struct {
 
 type EpubMounter struct {
 	epub          *epub.Epub
-	styleLocation string
 	outDir        string
+	styleLocation string
 	coverInfo     struct{ location, name string }
 	imageSections []imageSectionData
 	sync.Mutex
 }
 
-func NewEpubMounter(outputDirectory string) (*EpubMounter, error) {
+func NewEpubMounter(
+	outputDirectory string, readDirection inktypes.ReadDirection,
+) (*EpubMounter, error) {
 	title := filepath.Base(outputDirectory)
 	if title == "." {
 		asSha := sha256.Sum256([]byte(outputDirectory))
@@ -41,6 +44,8 @@ func NewEpubMounter(outputDirectory string) (*EpubMounter, error) {
 		return nil, err
 	}
 
+	// Set the PPD to the read direction
+	e.SetPpd(readDirection.String())
 	epubMounter := &EpubMounter{epub: e, outDir: outputDirectory}
 	err = epubMounter.registerMainCSS()
 
