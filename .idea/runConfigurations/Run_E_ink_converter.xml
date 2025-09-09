@@ -2,7 +2,7 @@
   <configuration default="false" name="Run E-ink converter" type="GoApplicationRunConfiguration" factoryName="Go Application">
     <module name="Kindle" />
     <working_directory value="$PROJECT_DIR$" />
-    <parameters value="-src=$PROJECT_DIR$/tests/so-blablabla -profile=K11" />
+    <parameters value="-src=$PROJECT_DIR$/tests/so-blablabla -profile=K11 -read-direction=rtl" />
     <kind value="PACKAGE" />
     <package value="github.com/Jictyvoo/ink_stream/cmd/kindleconverter" />
     <directory value="$PROJECT_DIR$" />

@@ -6,7 +6,7 @@ RUN apt update && apt install -y wget make && apt upgrade -y  \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /home/Downloads/
-ENV GOVERSION=1.24.3
+ENV GOVERSION=1.25.1
 ENV COMPRESSED_GO_FILE=go${GOVERSION}.linux-amd64.tar.gz
 
 # Install Go
