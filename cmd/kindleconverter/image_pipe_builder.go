@@ -7,6 +7,7 @@ import (
 	"github.com/Jictyvoo/ink_stream/internal/imageparser"
 	"github.com/Jictyvoo/ink_stream/internal/imageparser/imgpipesteps"
 	"github.com/Jictyvoo/ink_stream/pkg/deviceprof"
+	"github.com/Jictyvoo/ink_stream/pkg/inktypes"
 )
 
 func BuildPipeline(opts Options) (imageparser.ImagePipeline, error) {
@@ -15,6 +16,7 @@ func BuildPipeline(opts Options) (imageparser.ImagePipeline, error) {
 		return imageparser.ImagePipeline{}, errors.New("target device not found")
 	}
 
+	readDirection := inktypes.NewReadDirection(string(opts.ReadDirection))
 	autocropPalette := genPalette(opts.CropLevel, targetProfile.Palette)
 	imgSteps := append(
 		make([]imageparser.PipeStep, 0, 6),
@@ -22,7 +24,7 @@ func BuildPipeline(opts Options) (imageparser.ImagePipeline, error) {
 		imgpipesteps.NewStepMarginWrap(targetProfile.Resolution),
 		imgpipesteps.NewStepCropOrRotate(
 			opts.RotateImage, color.Palette(targetProfile.Palette),
-			targetProfile.Resolution.Orientation(),
+			readDirection, targetProfile.Resolution.Orientation(),
 		),
 		imgpipesteps.NewStepRescale(targetProfile.Resolution, opts.AllowStretch()),
 		imgpipesteps.NewStepAutoContrast(0, 0),

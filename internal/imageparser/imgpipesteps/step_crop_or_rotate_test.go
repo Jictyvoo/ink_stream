@@ -48,7 +48,8 @@ func TestStepCropOrRotateImage_PerformExec(t *testing.T) {
 
 			// Instantiate the StepCropOrRotateImage step
 			step := NewStepCropOrRotate(
-				tt.rotateImage, color.Palette{color.Black, color.White}, tt.expectedOrientation,
+				tt.rotateImage, color.Palette{color.Black, color.White},
+				inktypes.ReadLeftToRight, tt.expectedOrientation,
 			)
 
 			// Execute the step

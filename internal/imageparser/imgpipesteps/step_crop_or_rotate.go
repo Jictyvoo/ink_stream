@@ -3,6 +3,7 @@ package imgpipesteps
 import (
 	"image"
 	"image/color"
+	"slices"
 
 	"github.com/Jictyvoo/ink_stream/internal/imageparser"
 	"github.com/Jictyvoo/ink_stream/pkg/imgutils"
@@ -12,18 +13,20 @@ import (
 var _ imageparser.PipeStep = (*StepCropOrRotateImage)(nil)
 
 type StepCropOrRotateImage struct {
-	rotateImage bool
-	orientation inktypes.ImageOrientation
+	rotateImage   bool
+	orientation   inktypes.ImageOrientation
+	readDirection inktypes.ReadDirection
 	imageparser.BaseImageStep
 }
 
 func NewStepCropOrRotate(
 	rotate bool, palette color.Palette,
-	orientation inktypes.ImageOrientation,
+	readDirection inktypes.ReadDirection, orientation inktypes.ImageOrientation,
 ) *StepCropOrRotateImage {
 	return &StepCropOrRotateImage{
 		rotateImage:   rotate,
 		orientation:   orientation,
+		readDirection: readDirection,
 		BaseImageStep: imageparser.NewBaseImageStep(palette),
 	}
 }
@@ -57,6 +60,10 @@ func (step StepCropOrRotateImage) PerformExec(
 				state.SubImages = []image.Image{
 					imgutils.CropImage(originalImg, halfBounds.Left),
 					imgutils.CropImage(originalImg, halfBounds.Right),
+				}
+
+				if step.readDirection == inktypes.ReadRightToLeft {
+					slices.Reverse(state.SubImages)
 				}
 			}
 		}
