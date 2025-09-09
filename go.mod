@@ -6,7 +6,7 @@ require (
 	github.com/go-shiori/go-epub v1.2.1
 	github.com/mholt/archives v0.1.3
 	github.com/pdfcpu/pdfcpu v0.11.0
-	golang.org/x/image v0.30.0
+	golang.org/x/image v0.31.0
 )
 
 require (
@@ -32,11 +32,11 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/sorairolake/lzip-go v0.3.8 // indirect
-	github.com/spf13/afero v1.14.0 // indirect
+	github.com/spf13/afero v1.15.0 // indirect
 	github.com/ulikunitz/xz v0.5.15 // indirect
 	github.com/vincent-petithory/dataurl v1.0.0 // indirect
 	go4.org v0.0.0-20230225012048-214862532bf5 // indirect
-	golang.org/x/crypto v0.41.0 // indirect
-	golang.org/x/text v0.28.0 // indirect
+	golang.org/x/crypto v0.42.0 // indirect
+	golang.org/x/text v0.29.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
