@@ -10,17 +10,16 @@ type ImageData struct {
 	ImageSrc       string
 	ViewportWidth  int
 	ViewportHeight int
-	PanelLinks     []PanelLink
-	PanelImages    []PanelImage
-}
 
-type PanelLink struct {
-	ID       string
-	TargetID string
-	Ordinal  int
+	// BaseID is derived from ImageSrc and used to generate unique
+	// IDs for tap targets and their corresponding panel elements.
+	BaseID string
+
+	// Panel definitions
+	PanelImages []PanelImage
 }
 
 type PanelImage struct {
-	ID    string
-	Style string
+	Class   string
+	Ordinal int
 }

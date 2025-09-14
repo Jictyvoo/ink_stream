@@ -14,6 +14,7 @@ import (
 
 	"github.com/Jictyvoo/ink_stream/internal/services/imgprocessor"
 	"github.com/Jictyvoo/ink_stream/internal/services/mkbook/tmplepub"
+	"github.com/Jictyvoo/ink_stream/internal/utils"
 	"github.com/Jictyvoo/ink_stream/pkg/inktypes"
 )
 
@@ -89,6 +90,19 @@ func (em *EpubMounter) AddImagePage(
 	pageData tmplepub.ImageData,
 	sectionTitle, fileName string,
 ) error {
+	// Provide sensible defaults so the page renders even if caller omitted details
+	if len(pageData.PanelImages) == 0 {
+		pageData.PanelImages = []tmplepub.PanelImage{
+			{Class: "panel-top-left", Ordinal: 2},
+			{Class: "panel-top-right", Ordinal: 1},
+			{Class: "panel-bottom-left", Ordinal: 4},
+			{Class: "panel-bottom-right", Ordinal: 3},
+		}
+	}
+	// Ensure BaseID is set from ImageSrc
+	if pageData.BaseID == "" {
+		pageData.BaseID = utils.BuildBaseID(pageData.ImageSrc)
+	}
 	// If viewport dimensions were not provided, use image dimensions if available
 	if pageData.ViewportWidth == 0 && pageData.ImageWidth > 0 {
 		pageData.ViewportWidth = pageData.ImageWidth
