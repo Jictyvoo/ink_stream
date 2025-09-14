@@ -326,3 +326,5 @@ cython_debug/
 
 ### Custom ignores
 bin/
+resources/
+output/
