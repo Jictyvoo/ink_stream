@@ -1,0 +1,21 @@
+<div style="text-align:center;top:{{.TopMargin}}%;">
+    <img{{if .ImageWidth}} width="{{.ImageWidth}}"{{end}}{{if .ImageHeight}} height="{{.ImageHeight}}"{{end}}
+            src="{{.ImageSrc}}" alt="{{.ImageSrc}}"/>
+</div>
+{{$targetSuffix := "magTargetParent"}}
+<div id="panel-view">
+    {{range .PanelImages}}
+        <div id="{{$.BaseID}}">
+            <a style="display:inline-block;width:100%;height:100%;" class="app-amzn-magnify"
+               data-app-amzn-magnify='{"targetId":"{{$.BaseID}}-{{.Ordinal}}{{$targetSuffix}}", "ordinal":{{.Ordinal}}}'></a>
+        </div>
+    {{end}}
+</div>
+{{range .PanelImages}}
+    <div class="panel-image {{.Class}}" id="{{$.BaseID}}-{{.Ordinal}}{{$targetSuffix}}">
+        <img src="{{$.ImageSrc}}"
+                {{if $.ViewportWidth}} width="{{$.ViewportWidth}}"{{end}}
+                {{if $.ViewportHeight}} height="{{$.ViewportHeight}}"{{end}}
+             alt="{{$.ImageSrc}}"/>
+    </div>
+{{end}}

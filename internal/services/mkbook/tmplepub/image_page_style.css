@@ -1,0 +1,53 @@
+/* page margin */
+@page {
+    margin: 0;
+}
+
+/* body reset */
+body {
+    margin: 0;
+    padding: 0;
+}
+
+/* ---------- container --------------------------------------------------- */
+#panel-view {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+/* ---------- supported panel positions (corners only) -------------------- */
+.panel-top-left, .panel-top-right,
+.panel-bottom-left, .panel-bottom-right {
+    position: absolute;
+    width: 49.5%;
+    height: 50%;
+}
+
+.panel-top-left, .panel-top-right {
+    top: 0;
+}
+
+.panel-bottom-left, .panel-bottom-right {
+    bottom: 0;
+}
+
+.panel-top-left, .panel-bottom-left {
+    left: 0;
+}
+
+.panel-top-right, .panel-bottom-right {
+    right: 0;
+}
+
+/* ---------- images ----------------------------------------------------- */
+.panel-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: none;
+}
