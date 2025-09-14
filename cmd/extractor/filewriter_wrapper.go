@@ -4,6 +4,7 @@ import (
 	"io"
 
 	"github.com/Jictyvoo/ink_stream/internal/services/outdirwriter"
+	"github.com/Jictyvoo/ink_stream/pkg/inktypes"
 )
 
 type FileWriterWrapper struct {
@@ -26,9 +27,9 @@ func (f FileWriterWrapper) Shutdown() error {
 
 func (f FileWriterWrapper) Process(filename string, data []byte) {
 	_ = f.WriterHandle.Handler(
-		filename, func(writer io.Writer) error {
+		filename, func(writer io.Writer) (inktypes.ImageMetadata, error) {
 			_, err := writer.Write(data)
-			return err
+			return inktypes.ImageMetadata{}, err
 		},
 	)
 }
