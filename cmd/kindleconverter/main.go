@@ -85,7 +85,7 @@ func main() {
 	filenameList = utils.CollapseFilesByExt(filenameList, imgutils.SupportedImageFormats())
 	for _, fileAbsolutePath := range filenameList {
 		fileExt := strings.ToLower(filepath.Ext(fileAbsolutePath))
-		if slices.Contains(allowedFormats, fileExt) {
+		if fileExt == "" || slices.Contains(allowedFormats, fileExt) {
 			baseName := strings.TrimSuffix(filepath.Base(fileAbsolutePath), fileExt)
 			sendChannel <- filextract.FileInfo{
 				BaseName:     baseName,

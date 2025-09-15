@@ -111,6 +111,8 @@ func (fp *FileProcessorWorker) newExtractor(
 	file FileInfo, filePointer *os.File,
 ) (extractor cbxr.Extractor, err error) {
 	switch strings.ToLower(filepath.Ext(file.CompleteName)) {
+	case "":
+		return cbxr.NewFolderExtractor(filePointer)
 	case ".pdf":
 		return cbxr.NewPDFExtractor(filePointer)
 	case ".zip":
