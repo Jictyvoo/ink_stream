@@ -56,18 +56,23 @@ func ListAllFiles(inputFolder string) []string {
 // files with the supplied extensions is represented by the folder path
 // itself. All other files are returned unchanged.
 func CollapseFilesByExt(fileList []string, extList []string) []string {
-	// Group files by parent directory
-	dirMap := make(map[string][]string)
-	for _, f := range fileList {
-		dir := filepath.Dir(f)
-		dirMap[dir] = append(dirMap[dir], f)
+	for index, fileExt := range extList {
+		fileExt = strings.ToLower(strings.TrimSpace(fileExt))
+		extList[index] = "." + strings.Trim(fileExt, ".") // ensure that it starts with a dot
 	}
 
-	result := fileList[:0]
+	// Group files by parent directory
+	dirMap := make(map[string][]string)
+	for _, elemFile := range fileList {
+		dir := filepath.Dir(elemFile)
+		dirMap[dir] = append(dirMap[dir], elemFile)
+	}
+
+	result := fileList[:0] // Reuse underlying array to reduce memory allocations
 	for dir, files := range dirMap {
 		allAllowed := true
-		for _, f := range files {
-			ext := strings.ToLower(filepath.Ext(f))
+		for _, subFile := range files {
+			ext := strings.ToLower(filepath.Ext(subFile))
 			if !slices.Contains(extList, ext) {
 				allAllowed = false
 				break
@@ -80,11 +85,17 @@ func CollapseFilesByExt(fileList []string, extList []string) []string {
 		result = append(result, files...)
 	}
 
-	if len(result) < cap(result) {
-		newResult := make([]string, len(result))
-		copy(newResult, result)
-		return newResult
+	// Final processing after all valid folders identified
+	slices.Sort(result)
+	fileList = make([]string, 0, len(result))
+	for index, filElem := range slices.Backward(result) {
+		subSlice := result[:index]
+		ext := filepath.Ext(filElem)
+		folderDir := filepath.Dir(filElem)
+		if ext != "" || !slices.Contains(subSlice, folderDir) {
+			fileList = append(fileList, filElem)
+		}
 	}
 
-	return result
+	return fileList
 }

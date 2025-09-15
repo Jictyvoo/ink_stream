@@ -19,7 +19,7 @@ func TestCollapseFilesByExt(t *testing.T) {
 				"/project/images/cat.jpg",
 				"/project/images/dog.png",
 			},
-			exts:     []string{".jpg", ".png"},
+			exts:     []string{".jpg", "png"},
 			expected: []string{"/project/images"},
 		},
 		{
@@ -28,7 +28,7 @@ func TestCollapseFilesByExt(t *testing.T) {
 				"/project/images/cat.jpg",
 				"/project/images/readme.txt",
 			},
-			exts: []string{".jpg", ".png"},
+			exts: []string{".jpg", "...Png."},
 			expected: []string{
 				"/project/images/cat.jpg",
 				"/project/images/readme.txt",
@@ -42,7 +42,7 @@ func TestCollapseFilesByExt(t *testing.T) {
 				"/project/docs/readme.md",
 				"/project/docs/manual.pdf",
 			},
-			exts: []string{".jpg", ".png"},
+			exts: []string{".jpg", ".PNG"},
 			expected: []string{
 				"/project/images",
 				"/project/docs/readme.md",
@@ -65,8 +65,9 @@ func TestCollapseFilesByExt(t *testing.T) {
 			expected: []string{},
 		},
 		{
-			name: "nested subdirectories with only allowed extensions collapse to root",
+			name: "nested subdirectories with only allowed extensions collapse to root when it has another valid extension",
 			files: []string{
+				"/project/unexpected_extension.pdf",
 				"/project/gallery/sub1/cat.jpg",
 				"/project/gallery/sub1/dog.png",
 				"/project/gallery/sub2/bird.jpg",
@@ -74,7 +75,18 @@ func TestCollapseFilesByExt(t *testing.T) {
 				"/project/gallery/thumbnail.png",
 			},
 			exts:     []string{".jpg", ".png"},
-			expected: []string{"/project/gallery"},
+			expected: []string{"/project/gallery", "/project/unexpected_extension.pdf"},
+		},
+		{
+			name: "nested subdirectories with only allowed extensions to itself",
+			files: []string{
+				"/project/gallery/sub1/cat.jpg",
+				"/project/gallery/sub1/dog.png",
+				"/project/gallery/sub2/bird.jpg",
+				"/project/gallery/sub2/fish.png",
+			},
+			exts:     []string{"jpg", "png"},
+			expected: []string{"/project/gallery/sub1", "/project/gallery/sub2"},
 		},
 	}
 
