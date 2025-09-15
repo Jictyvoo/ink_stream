@@ -43,7 +43,7 @@ with flags or by editing the Go source.
 ## Installation
 
 ```shell script
-go install github.com/jictyvoo/ink_stream/cmd/kindleconverter@latest
+go install github.com/jictyvoo/ink_stream/cmd/inkonverter@latest
 ```
 
 ---
@@ -93,7 +93,7 @@ inkextract -src ./input -out ./images
 ### 2. `kindleconverter`
 
 ```shell script
-kindleconverter -src ./images -out ./epub -format epub
+inkonverter -src ./images -out ./epub -format epub
 ```
 
 - Packages a folder of already‑processed images into an EPUB (or MOBI/azw3 if specified).

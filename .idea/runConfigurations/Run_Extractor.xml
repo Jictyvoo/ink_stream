@@ -4,9 +4,8 @@
     <working_directory value="$PROJECT_DIR$" />
     <parameters value="-src=$PROJECT_DIR$/tests/so-blablabla" />
     <kind value="PACKAGE" />
-    <package value="github.com/Jictyvoo/ink_stream/cmd/extractor" />
+    <package value="github.com/Jictyvoo/ink_stream/cmd/inkextract" />
     <directory value="$PROJECT_DIR$" />
-    <filePath value="$PROJECT_DIR$/cmd/extractor/main.go" />
     <method v="2" />
   </configuration>
 </component>

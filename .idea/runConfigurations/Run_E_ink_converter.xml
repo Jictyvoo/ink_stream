@@ -4,9 +4,8 @@
     <working_directory value="$PROJECT_DIR$" />
     <parameters value="-src=$PROJECT_DIR$/tests/so-blablabla -profile=K11 -read-direction=rtl" />
     <kind value="PACKAGE" />
-    <package value="github.com/Jictyvoo/ink_stream/cmd/kindleconverter" />
+    <package value="github.com/Jictyvoo/ink_stream/cmd/inkonverter" />
     <directory value="$PROJECT_DIR$" />
-    <filePath value="$PROJECT_DIR$/cmd/kindleconverter/main.go" />
     <method v="2" />
   </configuration>
 </component>
