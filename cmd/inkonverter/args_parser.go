@@ -16,8 +16,8 @@ func parseArgs(cliArgs *Options) {
 	flag.StringVar(&cliArgs.OutputFolder, "out", "", "Output folder where files will be saved")
 	flag.BoolVar(&cliArgs.RotateImage, "rotate", false, "Rotate image files")
 	flag.BoolVar(&cliArgs.ColoredPages, "colored", false, "Colored pages")
-	cliArgs.AddMargins = flag.Bool("margins", false, "Add margin on image")
-	cliArgs.StretchImage = flag.Bool("stretch", false, "Stretch image files")
+	flag.BoolVar(&cliArgs.AddMargins, "margins", false, "Add margin on image")
+	flag.BoolVar(&cliArgs.StretchImage, "stretch", true, "Stretch image files")
 	cropLevel := flag.Uint("crop-level", uint(CropBasic), "Crop image level")
 
 	var (

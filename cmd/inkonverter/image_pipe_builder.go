@@ -35,7 +35,7 @@ func BuildPipeline(opts Options) (imageparser.ImagePipeline, error) {
 		imgSteps[1], imgSteps[2] = imgSteps[2], imgSteps[1]
 	}
 
-	if opts.AllowStretch() {
+	if !opts.AddMargins {
 		imgSteps = slices.DeleteFunc(imgSteps, func(step imageparser.PipeStep) bool {
 			_, isType := step.(*imgpipesteps.StepMarginWrapImage)
 			return isType

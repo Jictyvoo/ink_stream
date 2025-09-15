@@ -28,17 +28,15 @@ type Options struct {
 	OutputFormat  OutputFormat
 	ReadDirection ReadDirection
 	RotateImage   bool
-	StretchImage  *bool
-	AddMargins    *bool
+	StretchImage  bool
+	AddMargins    bool
 	ColoredPages  bool
 }
 
 func (opts Options) AllowStretch() bool {
-	stretchImg := opts.StretchImage != nil && *opts.StretchImage
-	addMargins := opts.AddMargins != nil && *opts.AddMargins
-	if addMargins {
-		return false
+	if opts.AddMargins {
+		return true
 	}
 
-	return stretchImg
+	return opts.StretchImage
 }
