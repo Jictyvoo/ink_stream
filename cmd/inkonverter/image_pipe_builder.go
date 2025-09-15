@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"image/color"
+	"slices"
 
 	"github.com/Jictyvoo/ink_stream/internal/imageparser"
 	"github.com/Jictyvoo/ink_stream/internal/imageparser/imgpipesteps"
@@ -32,6 +33,13 @@ func BuildPipeline(opts Options) (imageparser.ImagePipeline, error) {
 
 	if opts.RotateImage { // Only include the margin first if the image should not rotate
 		imgSteps[1], imgSteps[2] = imgSteps[2], imgSteps[1]
+	}
+
+	if opts.AllowStretch() {
+		imgSteps = slices.DeleteFunc(imgSteps, func(step imageparser.PipeStep) bool {
+			_, isType := step.(*imgpipesteps.StepMarginWrapImage)
+			return isType
+		})
 	}
 	if !opts.ColoredPages {
 		imgSteps = append([]imageparser.PipeStep{imgpipesteps.NewStepGrayScale()}, imgSteps...)

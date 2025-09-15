@@ -72,7 +72,7 @@ func TestStepRescaleImage_PerformExec(t *testing.T) {
 	}
 	for _, tCase := range testCases {
 		t.Run(tCase.name, func(t *testing.T) {
-			step := NewStepRescale(tCase.targetSize, false)
+			step := NewStepRescale(tCase.targetSize, true)
 			mockImage := func(size inktypes.ImageDimensions, fillValue color.Color) image.Image {
 				img := image.NewRGBA(
 					image.Rect(0, 0, int(size.Width), int(size.Height)),
