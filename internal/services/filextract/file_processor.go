@@ -43,7 +43,7 @@ func (fp *FileProcessorWorker) Run() error {
 func (fp *FileProcessorWorker) processFile(file FileInfo) (resultErr error) {
 	extractDir := filepath.Join(fp.OutputFolder, file.BaseName)
 
-	filePointer, err := os.OpenFile(file.CompleteName, os.O_RDONLY, 755)
+	filePointer, err := os.OpenFile(file.CompleteName, os.O_RDONLY, 0o755)
 	if err != nil {
 		slog.Error(
 			"Failed to open input file",
