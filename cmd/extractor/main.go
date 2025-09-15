@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"runtime"
 	"slices"
 	"strings"
 	"sync"
@@ -41,7 +42,7 @@ func main() {
 	fmt.Printf("Using target folder %s\n", inputFolder)
 	fmt.Printf("Using output folder %s\n", outputFolder)
 	// Ensure the output folder exists
-	if err := os.MkdirAll(outputFolder, 0755); err != nil {
+	if err := os.MkdirAll(outputFolder, 0o755); err != nil {
 		log.Fatalf("Failed to create output folder: %v", err)
 	}
 
@@ -51,13 +52,13 @@ func main() {
 	)
 
 	// Create worker pool
-	for range 5 {
+	for range runtime.NumCPU() {
 		wg.Add(1)
 		go func() {
 			fp := filextract.NewFileProcessorWorker(
 				sendChannel, outputFolder,
 				func(outputDir string) (filextract.FileOutputWriter, error) {
-					return NewFileWriterWrapper(outputDir), nil
+					return NewFileWriterWrapper(outputDir)
 				},
 			)
 			defer wg.Done()

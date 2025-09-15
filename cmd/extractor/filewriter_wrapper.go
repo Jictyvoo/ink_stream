@@ -11,10 +11,9 @@ type FileWriterWrapper struct {
 	outdirwriter.WriterHandle
 }
 
-func NewFileWriterWrapper(extractDir string) *FileWriterWrapper {
-	return &FileWriterWrapper{
-		outdirwriter.NewWriterHandle(extractDir),
-	}
+func NewFileWriterWrapper(extractDir string) (*FileWriterWrapper, error) {
+	wh, err := outdirwriter.NewWriterHandle(extractDir)
+	return &FileWriterWrapper{WriterHandle: wh}, err
 }
 
 func (f FileWriterWrapper) Close() error {

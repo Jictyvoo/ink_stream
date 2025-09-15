@@ -24,15 +24,18 @@ type (
 	}
 )
 
-func NewWriterHandle(extractDir string) WriterHandle {
+func NewWriterHandle(extractDir string) (WriterHandle, error) {
 	// Create the directory for the extracted files
-	_ = CreateOutDir(extractDir, CoverDirSuffix)
+	if err := CreateOutDir(extractDir, CoverDirSuffix); err != nil {
+		return WriterHandle{}, err
+	}
 
-	return WriterHandle{
+	wh := WriterHandle{
 		outputDirectory:    extractDir,
 		coverDirectoryName: filepath.Join(extractDir, CoverDirSuffix),
 		folderCounter:      &folderInfoCounter{},
 	}
+	return wh, nil
 }
 
 func (wh WriterHandle) defaultDir() string {

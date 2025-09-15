@@ -33,7 +33,7 @@ func main() {
 		_ = json.Unmarshal(jsonBytes, &argsMap)
 		slog.Info("Using cli options", slog.Any("options", argsMap))
 	} // Ensure the output folder exists
-	if err := os.MkdirAll(cliArgs.OutputFolder, 755); err != nil {
+	if err := os.MkdirAll(cliArgs.OutputFolder, 0o755); err != nil {
 		log.Fatalf("Failed to create output folder: %v", err)
 	}
 
@@ -109,7 +109,7 @@ func fileWriterGenerator(
 	switch format {
 	case FormatFolder:
 		return func(outputDir string) (imgprocessor.FileWriter, error) {
-			return outdirwriter.NewWriterHandle(outputDir), nil
+			return outdirwriter.NewWriterHandle(outputDir)
 		}, nil
 	case FormatEpub:
 		return func(outputDir string) (imgprocessor.FileWriter, error) {
