@@ -85,7 +85,7 @@ The tool ships with three executables:
 ### 1. `extractor`
 
 ```shell script
-extractor -src ./input -out ./images
+inkextract -src ./input -out ./images
 ```
 
 - Pulls out all images from the source folder without further processing. Handy for debugging or manual re‑processing.
