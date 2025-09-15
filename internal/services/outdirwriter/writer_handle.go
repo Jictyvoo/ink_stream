@@ -25,6 +25,9 @@ type (
 )
 
 func NewWriterHandle(extractDir string) WriterHandle {
+	// Create the directory for the extracted files
+	_ = CreateOutDir(extractDir, CoverDirSuffix)
+
 	return WriterHandle{
 		outputDirectory:    extractDir,
 		coverDirectoryName: filepath.Join(extractDir, CoverDirSuffix),
@@ -98,5 +101,9 @@ func (wh WriterHandle) Flush() (err error) {
 		)
 	}
 
+	// After finishing file processing, start the post-analysis
+	if err = MoveFirstFileToCoverFolder(wh.outputDirectory); err != nil {
+		return err
+	}
 	return err
 }

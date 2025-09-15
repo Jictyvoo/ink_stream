@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	"github.com/Jictyvoo/ink_stream/internal/services/filextract/cbxr"
-	"github.com/Jictyvoo/ink_stream/internal/services/outdirwriter"
 )
 
 type FileProcessorWorker struct {
@@ -36,11 +35,6 @@ func (fp *FileProcessorWorker) Run() error {
 		if err := fp.processFile(filename); err != nil {
 			return fmt.Errorf("failed to process file `%s`: %w", filename, err)
 		}
-
-		// After finishing file processing, start the post-analysis
-		if err := outdirwriter.MoveFirstFileToCoverFolder(filepath.Join(fp.OutputFolder, filename.BaseName)); err != nil {
-			return err
-		}
 	}
 
 	return nil
@@ -48,11 +42,6 @@ func (fp *FileProcessorWorker) Run() error {
 
 func (fp *FileProcessorWorker) processFile(file FileInfo) (resultErr error) {
 	extractDir := filepath.Join(fp.OutputFolder, file.BaseName)
-
-	// Create the directory for the extracted files
-	if err := outdirwriter.CreateOutDir(extractDir, outdirwriter.CoverDirSuffix); err != nil {
-		return err
-	}
 
 	filePointer, err := os.OpenFile(file.CompleteName, os.O_RDONLY, 755)
 	if err != nil {
