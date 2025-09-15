@@ -60,3 +60,7 @@ func CropImage(img image.Image, rect image.Rectangle) image.Image {
 	draw.Draw(cropped, rect, img, rect.Min, draw.Src)
 	return cropped
 }
+
+func SupportedImageFormats() []string {
+	return []string{".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".webp"}
+}

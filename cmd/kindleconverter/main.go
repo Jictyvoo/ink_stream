@@ -19,6 +19,7 @@ import (
 	"github.com/Jictyvoo/ink_stream/internal/services/mkbook"
 	"github.com/Jictyvoo/ink_stream/internal/services/outdirwriter"
 	"github.com/Jictyvoo/ink_stream/internal/utils"
+	"github.com/Jictyvoo/ink_stream/pkg/imgutils"
 	"github.com/Jictyvoo/ink_stream/pkg/inktypes"
 )
 
@@ -59,8 +60,7 @@ func main() {
 		wg.Add(1)
 		go func() {
 			fp := filextract.NewFileProcessorWorker(
-				sendChannel,
-				cliArgs.OutputFolder,
+				sendChannel, cliArgs.OutputFolder,
 				func(outputDir string) (filextract.FileOutputWriter, error) {
 					fileWriter, constructErr := outWriterFactory(outputDir)
 					imageProcessor := imgprocessor.NewMultiThreadImageProcessor(
@@ -82,6 +82,7 @@ func main() {
 
 	filenameList := utils.ListAllFiles(cliArgs.SourceFolder)
 	allowedFormats := cbxr.SupportedFileExtensions()
+	filenameList = utils.CollapseFilesByExt(filenameList, imgutils.SupportedImageFormats())
 	for _, fileAbsolutePath := range filenameList {
 		fileExt := strings.ToLower(filepath.Ext(fileAbsolutePath))
 		if slices.Contains(allowedFormats, fileExt) {
