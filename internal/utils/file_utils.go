@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
+	"strings"
 )
 
 func CreateDirIfNotExist(dir string) error {
@@ -24,8 +25,8 @@ func ListAllFiles(inputFolder string) []string {
 		log.Fatalf("Failed to read input folder: %v", err)
 	}
 
-	var parentFolders = slices.Repeat([]string{inputFolder}, len(dirEntries))
-	var filenameList = make([]string, 0, len(dirEntries))
+	parentFolders := slices.Repeat([]string{inputFolder}, len(dirEntries))
+	filenameList := make([]string, 0, len(dirEntries))
 	for i := 0; i < len(dirEntries); i++ {
 		dirEntry := dirEntries[i]
 		parentDir := parentFolders[i]
@@ -48,4 +49,42 @@ func ListAllFiles(inputFolder string) []string {
 
 	slices.Sort(filenameList)
 	return filenameList
+}
+
+// CollapseFilesByExt takes a list of file paths and a list of file
+// extensions. It returns a new list where any folder that contains *only*
+// files with the supplied extensions is represented by the folder path
+// itself. All other files are returned unchanged.
+func CollapseFilesByExt(fileList []string, extList []string) []string {
+	// Group files by parent directory
+	dirMap := make(map[string][]string)
+	for _, f := range fileList {
+		dir := filepath.Dir(f)
+		dirMap[dir] = append(dirMap[dir], f)
+	}
+
+	result := fileList[:0]
+	for dir, files := range dirMap {
+		allAllowed := true
+		for _, f := range files {
+			ext := strings.ToLower(filepath.Ext(f))
+			if !slices.Contains(extList, ext) {
+				allAllowed = false
+				break
+			}
+		}
+		if allAllowed {
+			result = append(result, dir)
+			continue
+		}
+		result = append(result, files...)
+	}
+
+	if len(result) < cap(result) {
+		newResult := make([]string, len(result))
+		copy(newResult, result)
+		return newResult
+	}
+
+	return result
 }
