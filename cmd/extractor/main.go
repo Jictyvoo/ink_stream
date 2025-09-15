@@ -68,6 +68,7 @@ func main() {
 
 	filenameList := utils.ListAllFiles(inputFolder)
 	allowedFormats := cbxr.SupportedFileExtensions()
+	var sentCount uint16
 	for _, fileAbsolutePath := range filenameList {
 		fileExt := strings.ToLower(filepath.Ext(fileAbsolutePath))
 		if slices.Contains(allowedFormats, fileExt) {
@@ -76,10 +77,11 @@ func main() {
 				BaseName:     baseName,
 				CompleteName: fileAbsolutePath,
 			}
+			sentCount++
 		}
 	}
 	close(sendChannel)
 
 	wg.Wait()
-	log.Printf("Sent %d files", len(filenameList))
+	log.Printf("Sent %d files", sentCount)
 }
