@@ -1,6 +1,7 @@
 package imgpipesteps
 
 import (
+	"fmt"
 	"image"
 	"image/color"
 	"testing"
@@ -111,6 +112,90 @@ func TestStepRescaleImage_PerformExec(t *testing.T) {
 			if !imgutils.IsImageEqual(result, tCase.expectedImg) {
 				t.Errorf(
 					"expected: %#v, actual: %#v", tCase.expectedImg, result,
+				)
+			}
+		})
+	}
+}
+
+func TestStepRescaleImage_updateTargetResolution(t *testing.T) {
+	testCases := []struct {
+		name     string
+		original inktypes.ImageDimensions
+		target   inktypes.ImageDimensions
+		expected inktypes.ImageDimensions
+	}{
+		{
+			name:     "Landscape to Portrait - Simple scaling",
+			original: inktypes.ImageDimensions{Width: 651, Height: 1008},
+			target:   inktypes.ImageDimensions{Width: 1072, Height: 1448},
+			expected: inktypes.ImageDimensions{Width: 935, Height: 1448},
+		},
+		{
+			name:     "Portrait to Square - Original narrower than target",
+			original: inktypes.ImageDimensions{Width: 100, Height: 200},
+			target:   inktypes.ImageDimensions{Width: 50, Height: 50},
+			expected: inktypes.ImageDimensions{Width: 25, Height: 50},
+		},
+		{
+			name:     "Landscape to Landscape - Original wider than target",
+			original: inktypes.ImageDimensions{Width: 300, Height: 200},
+			target:   inktypes.ImageDimensions{Width: 200, Height: 100},
+			expected: inktypes.ImageDimensions{Width: 150, Height: 100},
+		},
+		{
+			name:     "Portrait to Landscape - Original taller than target",
+			original: inktypes.ImageDimensions{Width: 200, Height: 300},
+			target:   inktypes.ImageDimensions{Width: 200, Height: 100},
+			expected: inktypes.ImageDimensions{Width: 66, Height: 100},
+		},
+		{
+			name:     "Square to Square - Upscaling",
+			original: inktypes.ImageDimensions{Width: 200, Height: 200},
+			target:   inktypes.ImageDimensions{Width: 250, Height: 250},
+			expected: inktypes.ImageDimensions{Width: 250, Height: 250},
+		},
+		{
+			name:     "Portrait with zero width",
+			original: inktypes.ImageDimensions{Width: 0, Height: 200},
+			target:   inktypes.ImageDimensions{Width: 100, Height: 100},
+			expected: inktypes.ImageDimensions{Width: 0, Height: 100},
+		},
+		{
+			name:     "Landscape with zero height",
+			original: inktypes.ImageDimensions{Width: 200, Height: 0},
+			target:   inktypes.ImageDimensions{Width: 100, Height: 100},
+			expected: inktypes.ImageDimensions{Width: 100, Height: 0},
+		},
+		{
+			name:     "Any to Zero target dimensions",
+			original: inktypes.ImageDimensions{Width: 200, Height: 300},
+			target:   inktypes.ImageDimensions{Width: 0, Height: 0},
+			expected: inktypes.ImageDimensions{Width: 0, Height: 0},
+		},
+		{
+			name:     "Portrait to Landscape - Scaling down",
+			original: inktypes.ImageDimensions{Width: 200, Height: 300},
+			target:   inktypes.ImageDimensions{Width: 400, Height: 200},
+			expected: inktypes.ImageDimensions{Width: 133, Height: 200},
+		},
+	}
+
+	for _, tt := range testCases {
+		if tt.name == "" {
+			tt.name = fmt.Sprintf("%+v->%+v", tt.original, tt.target)
+		}
+		t.Run(tt.name, func(t *testing.T) {
+			step := StepRescaleImage{resolution: tt.target}
+			result := step.updateTargetResolution(tt.original)
+
+			if result.Width != tt.expected.Width || result.Height != tt.expected.Height {
+				t.Errorf(
+					"For original dimensions (%+v) and target resolution (%+v)\n\tExpected new dimensions (%+v)\n\tGot (%+v)",
+					tt.original,
+					tt.target,
+					tt.expected,
+					result,
 				)
 			}
 		})
