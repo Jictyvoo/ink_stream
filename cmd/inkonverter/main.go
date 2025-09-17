@@ -64,7 +64,11 @@ func main() {
 				func(outputDir string) (filextract.FileOutputWriter, error) {
 					fileWriter, constructErr := outWriterFactory(outputDir)
 					imageProcessor := imgprocessor.NewMultiThreadImageProcessor(
-						fileWriter, imgPipeline,
+						imgPipeline,
+						fileWriter, inktypes.NewImageEncodingOptions(
+							cliArgs.ImageQuality,
+							inktypes.ImageFormat(cliArgs.ImageFormat),
+						),
 					)
 					return imageProcessor, constructErr
 				},

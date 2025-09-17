@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"image"
 	"image/jpeg"
+	"image/png"
 	"io"
 	"log/slog"
 	"path/filepath"
@@ -26,18 +27,21 @@ type (
 		inputChan     chan fileEntry
 		numGoroutines uint8
 		isFinished    atomic.Bool
+		encodingConf  inktypes.ImageEncodingOptions
 	}
 )
 
 func NewMultiThreadImageProcessor(
-	fileWriter FileWriter,
 	imgPipeline imageparser.ImagePipeline,
+	fileWriter FileWriter, encodingConf inktypes.ImageEncodingOptions,
 ) *MultiThreadImageProcessor {
+	encodingConf.Quality = max(min(encodingConf.Quality, 100), 85)
 	mtip := &MultiThreadImageProcessor{
 		fileWriter:    fileWriter,
 		imgPipeline:   imgPipeline,
 		numGoroutines: 10,
 		inputChan:     make(chan fileEntry),
+		encodingConf:  encodingConf,
 	}
 
 	for range mtip.numGoroutines {
@@ -84,7 +88,7 @@ func (mtip *MultiThreadImageProcessor) run(fileName string, data []byte) (err er
 
 	for index, img := range finalImgList {
 		err = mtip.fileWriter.Handler(
-			fileName+"__"+strconv.Itoa(index)+".jpeg",
+			fileName+"__"+strconv.Itoa(index)+mtip.encodingConf.FileExtension(),
 			func(writer io.Writer) (metadata inktypes.ImageMetadata, err error) {
 				imgBounds := img.Bounds()
 				metadata = inktypes.ImageMetadata{
@@ -92,9 +96,13 @@ func (mtip *MultiThreadImageProcessor) run(fileName string, data []byte) (err er
 						Width:  uint16(imgBounds.Dx()),
 						Height: uint16(imgBounds.Dy()),
 					},
-					Format: inktypes.FormatJPEG,
+					ImageEncodingOptions: mtip.encodingConf,
 				}
-				err = jpeg.Encode(writer, img, &jpeg.Options{Quality: 85})
+				if mtip.encodingConf.Format == inktypes.FormatPNG {
+					err = png.Encode(writer, img)
+				} else { // Default fallback to JPEG
+					err = jpeg.Encode(writer, img, &jpeg.Options{Quality: int(mtip.encodingConf.Quality)})
+				}
 				return metadata, err
 			},
 		)
