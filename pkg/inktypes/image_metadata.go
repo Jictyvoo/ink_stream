@@ -1,5 +1,7 @@
 package inktypes
 
+import "strings"
+
 type ImageFormat string
 
 const (
@@ -10,11 +12,23 @@ const (
 	FormatWEBP ImageFormat = "webp"
 )
 
-type ImageMetadata struct {
-	ImageDimensions
-	Format  ImageFormat
-	Palette PaletteIdentifier
-	DPI     int
+type (
+	ImageEncodingOptions struct {
+		Quality uint8
+		Format  ImageFormat
+	}
+	ImageMetadata struct {
+		ImageDimensions
+		ImageEncodingOptions
+		Palette PaletteIdentifier
+		DPI     int
+	}
+)
+
+func NewImageEncodingOptions(quality uint8, format ImageFormat) ImageEncodingOptions {
+	quality = min(quality, 100)
+	format = ImageFormat(strings.ToLower(string(format)))
+	return ImageEncodingOptions{Quality: quality, Format: format}
 }
 
 func NewImageMetadata(width, height int) ImageMetadata {
@@ -24,4 +38,8 @@ func NewImageMetadata(width, height int) ImageMetadata {
 			Height: uint16(height),
 		},
 	}
+}
+
+func (ieo ImageEncodingOptions) FileExtension() string {
+	return "." + string(ieo.Format)
 }
