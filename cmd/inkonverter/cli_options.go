@@ -1,6 +1,9 @@
 package main
 
-import "github.com/Jictyvoo/ink_stream/pkg/deviceprof"
+import (
+	"github.com/Jictyvoo/ink_stream/pkg/deviceprof"
+	"github.com/Jictyvoo/ink_stream/pkg/inktypes"
+)
 
 type CropStyle uint8
 
@@ -20,6 +23,13 @@ const (
 
 type ReadDirection string
 
+type ImageFormat string
+
+const (
+	ImageJPEG = ImageFormat(inktypes.FormatJPEG)
+	ImagePNG  = ImageFormat(inktypes.FormatPNG)
+)
+
 type Options struct {
 	SourceFolder  string
 	OutputFolder  string
@@ -31,6 +41,8 @@ type Options struct {
 	StretchImage  bool
 	AddMargins    bool
 	ColoredPages  bool
+	ImageFormat   ImageFormat
+	ImageQuality  uint8
 }
 
 func (opts Options) AllowStretch() bool {

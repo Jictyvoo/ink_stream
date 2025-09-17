@@ -24,9 +24,13 @@ func parseArgs(cliArgs *Options) {
 		targetDevice  string
 		outFormat     string
 		readDirection string
+		imgOutFormat  string
+		imgOutQuality uint
 	)
 	flag.StringVar(&targetDevice, "profile", "", "Target device name")
 	flag.StringVar(&outFormat, "format", string(FormatEpub), "Output format")
+	flag.StringVar(&imgOutFormat, "img-format", string(ImageJPEG), "Image output format")
+	flag.UintVar(&imgOutQuality, "img-quality", 85, "Image output quality")
 	flag.StringVar(
 		&readDirection, "read-direction",
 		inktypes.ReadLeftToRight.String(), "Read direction used as epub PPD",
@@ -39,6 +43,11 @@ func parseArgs(cliArgs *Options) {
 	}
 	cliArgs.TargetDevice = deviceprof.DeviceType(targetDevice)
 	cliArgs.OutputFormat = OutputFormat(outFormat)
+	cliArgs.ImageQuality = uint8(imgOutQuality)
+	cliArgs.ImageFormat = ImageFormat(imgOutFormat)
+	if cliArgs.ImageFormat == ImagePNG {
+		cliArgs.ImageQuality = 100
+	}
 
 	if cliArgs.OutputFolder == "" {
 		cliArgs.OutputFolder = defaultOutputFolder(cliArgs.SourceFolder)
