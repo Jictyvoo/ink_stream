@@ -66,7 +66,7 @@ func (step StepGammaCorrectionImage) PerformExec(
 	}
 
 	state.Img = newImg
-	return
+	return err
 }
 
 func (step StepGammaCorrectionImage) PixelStep(imgColor color.Color) color.Color {

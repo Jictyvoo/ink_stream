@@ -92,5 +92,5 @@ func ImageMarginDominantColor(
 		)
 	}
 
-	return
+	return dominantColors
 }

@@ -41,7 +41,7 @@ func (step StepAutoCropImage) PerformExec(
 	// Use gaussian blur to perform image crop
 	if err = step.blurSubstep.PerformExec(state, imageparser.ProcessOptions{}); err != nil {
 		state.Img = originalImage
-		return
+		return err
 	}
 
 	blurredImg := state.Img
@@ -62,13 +62,13 @@ func (step StepAutoCropImage) PerformExec(
 		state.Img = imgutils.CropImage(state.Img, desiredBox)
 	}
 
-	return
+	return err
 }
 
 func (step StepAutoCropImage) wrapInMargin(
 	croppedBox image.Rectangle, limits image.Point,
 ) image.Rectangle {
-	desiredBox := imgutils.MarginBox(croppedBox, 0.016)
+	desiredBox := imgutils.MarginBox(croppedBox, 1.6e-2)
 	if desiredBox.Max.X > limits.X {
 		desiredBox.Max.X = limits.X
 	}

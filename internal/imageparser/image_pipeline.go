@@ -70,12 +70,12 @@ func (imgPipe ImagePipeline) processImage(
 			continue
 		}
 		if err = step.PerformExec(&state, imgPipe.opts); err != nil {
-			return
+			return resultImg, subImages, executedSteps, err
 		}
 		executedSteps = append(executedSteps, step.StepID())
 		if len(state.SubImages) > 0 {
 			subImages = append(subImages, state.SubImages...)
-			return
+			return resultImg, subImages, executedSteps, err
 		}
 	}
 
@@ -95,7 +95,7 @@ func (imgPipe ImagePipeline) processImage(
 	}
 
 	resultImg = state.Img
-	return
+	return resultImg, subImages, executedSteps, err
 }
 
 func (imgPipe ImagePipeline) Process(img image.Image) (outputImgs []image.Image, err error) {
@@ -123,5 +123,5 @@ func (imgPipe ImagePipeline) Process(img image.Image) (outputImgs []image.Image,
 		}
 	}
 
-	return
+	return outputImgs, err
 }

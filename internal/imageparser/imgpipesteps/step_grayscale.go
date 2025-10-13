@@ -40,7 +40,7 @@ func (step StepGrayScaleImage) PerformExec(
 	}
 
 	state.Img = grayImg
-	return
+	return err
 }
 
 func (step StepGrayScaleImage) PixelStep(imgColor color.Color) color.Color {

@@ -109,12 +109,12 @@ func (step StepAutoContrastImage) PerformExec(
 
 	if uint16(opts.Gamma) == 1 || opts.Gamma == 0 {
 		state.Img = step.AutoContrast(state.Img)
-		return
+		return err
 	}
 
 	if err = step.gammaCorrect.PerformExec(state, opts); err != nil {
-		return
+		return err
 	}
 	state.Img = step.AutoContrast(state.Img)
-	return
+	return err
 }
