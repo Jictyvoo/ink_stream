@@ -31,3 +31,12 @@ comiconverter:
 # Clean up build artifacts
 clean:
 	rm -f $(EXTRACTOR_BIN) $(COMICONVERTER_BIN)
+
+# Install formatters
+install-formatters:
+	go install github.com/segmentio/golines@latest
+	go install mvdan.cc/gofumpt@latest
+
+# Run formatters
+run-formatters:
+	golines --base-formatter=gofumpt -w .
