@@ -81,9 +81,10 @@ func (wh WriterHandle) Handler(filename string, callback imgprocessor.WriterCall
 		destinationFolder = filepath.Join(wh.outputDirectory, subFolderName)
 	}
 
-	writeFile, err := os.Create(destinationFolder + "/" + strings.TrimLeft(filename, "."))
-	if err != nil {
-		return err
+	absPath = filepath.Join(destinationFolder, strings.TrimLeft(filepath.Base(filename), "."))
+	writeFile, creatErr := os.Create(absPath)
+	if creatErr != nil {
+		return creatErr
 	}
 	defer writeFile.Close()
 
