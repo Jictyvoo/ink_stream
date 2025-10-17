@@ -11,6 +11,7 @@ import (
 
 	"github.com/Jictyvoo/ink_stream/internal/services/imgprocessor"
 	"github.com/Jictyvoo/ink_stream/internal/utils"
+	"github.com/Jictyvoo/ink_stream/pkg/inktypes"
 )
 
 const defaultContentDir = "content-main"
@@ -72,7 +73,11 @@ func (wh WriterHandle) subFolderName(absFilename string) (directoryName string) 
 	return directoryName
 }
 
-func (wh WriterHandle) Handler(filename string, callback imgprocessor.WriterCallback) error {
+// ExecuteFileWrite writes the file and also returns the
+// image metadata and the absolute path of the written file.
+func (wh WriterHandle) ExecuteFileWrite(
+	filename string, callback imgprocessor.WriterCallback,
+) (meta inktypes.ImageMetadata, absPath string, err error) {
 	destinationFolder := wh.outputDirectory
 	if fileIsCover(filename) {
 		destinationFolder = wh.coverDirectoryName
@@ -84,11 +89,16 @@ func (wh WriterHandle) Handler(filename string, callback imgprocessor.WriterCall
 	absPath = filepath.Join(destinationFolder, strings.TrimLeft(filepath.Base(filename), "."))
 	writeFile, creatErr := os.Create(absPath)
 	if creatErr != nil {
-		return creatErr
+		return inktypes.ImageMetadata{}, "", creatErr
 	}
 	defer writeFile.Close()
 
-	_, err = callback(writeFile)
+	meta, err = callback(writeFile)
+	return meta, absPath, err
+}
+
+func (wh WriterHandle) Handler(filename string, callback imgprocessor.WriterCallback) error {
+	_, _, err := wh.ExecuteFileWrite(filename, callback)
 	return err
 }
 
