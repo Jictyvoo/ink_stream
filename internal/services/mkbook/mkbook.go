@@ -187,10 +187,14 @@ func (em *EpubMounter) Flush() error {
 			continue
 		}
 
+		sectionTitle := "root"
+		if imgSection.chapterID != "." && imgSection.chapterID != "" {
+			sectionTitle = imgSection.chapterID
+		}
 		// First page of this chapter: add as the parent section
 		parentFN, err := em.epub.AddSection(
 			buf.String(),
-			imgSection.sectionTitle,
+			sectionTitle,
 			imgSection.fileName,
 			em.styleLocation,
 		)
