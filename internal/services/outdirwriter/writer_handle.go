@@ -45,10 +45,7 @@ func (wh WriterHandle) defaultDir() string {
 
 func (wh WriterHandle) subFolderName(absFilename string) (directoryName string) {
 	directoryName = filepath.Dir(absFilename)
-	if index := strings.LastIndex(directoryName, "(en)"); index >= 0 {
-		directoryName = directoryName[0:index]
-	}
-	directoryName = strings.ReplaceAll(strings.TrimSpace(directoryName), " ", "-")
+	directoryName = normalizeFolderName(directoryName)
 
 	filename := filepath.Base(absFilename)
 	folderDir := wh.defaultDir()

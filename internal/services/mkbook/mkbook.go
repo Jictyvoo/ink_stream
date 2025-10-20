@@ -86,6 +86,7 @@ func (em *EpubMounter) Handler(filename string, callback imgprocessor.WriterCall
 
 	// Register the image in the EPUB from disk path
 	var locationOnEpub string
+	filename = normalizeFileName(filename)
 	filename = strings.ReplaceAll(
 		filename, "/", "__",
 	) // This is a temporary fix due to epub lib used not supporting folders

@@ -5,6 +5,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/Jictyvoo/ink_stream/internal/utils"
 )
 
 const CoverDirSuffix = "0000_Cover"
@@ -26,4 +28,9 @@ func CreateOutDir(extractDir string, suffix string) error {
 	}
 
 	return nil
+}
+
+func normalizeFolderName(input string) string {
+	fileBase := utils.SanitizeName(input, ' ', nil, utils.DefaultInsideIgnore(), '.', '-', '/')
+	return fileBase
 }

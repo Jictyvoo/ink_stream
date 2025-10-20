@@ -1,6 +1,10 @@
 package mkbook
 
-import "encoding/base64"
+import (
+	"encoding/base64"
+
+	"github.com/Jictyvoo/ink_stream/internal/utils"
+)
 
 func writeBinaryFile(
 	filename string, byteData []byte,
@@ -12,4 +16,9 @@ func writeBinaryFile(
 		filename,
 	)
 	return location, err
+}
+
+func normalizeFileName(input string) string {
+	fileBase := utils.NormalizeName(input, '_', utils.DefaultInsideIgnore(), '.', '-', '/')
+	return fileBase
 }
