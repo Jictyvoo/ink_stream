@@ -33,29 +33,63 @@ func BuildBaseID(imageSrc string) string {
 	return res
 }
 
-func NormalizeName(base string, divider rune, ignoreInsideOf [][2]rune, keepRunes ...rune) string {
-	var builder strings.Builder
+func DefaultInsideIgnore() [][2]rune {
+	return [][2]rune{{'(', ')'}, {'{', '}'}, {'[', ']'}}
+}
+
+func checkIgnores(r int32, stack []rune, ignoreInsideOf [][2]rune, appendDash *bool) []rune {
+	foundIdx := slices.IndexFunc(
+		ignoreInsideOf, func(toIgnore [2]rune) bool { return toIgnore[0] == r },
+	)
+	if foundIdx >= 0 {
+		stack = append(stack, ignoreInsideOf[foundIdx][1])
+		return stack
+	}
+	// If we are currently inside an ignore section
+	if len(stack) > 0 {
+		// Check if this rune closes the current section
+		if r == stack[len(stack)-1] {
+			stack = stack[:len(stack)-1] // pop
+			*appendDash = true
+		}
+		return stack
+	}
+
+	return nil
+}
+
+func SanitizeName(
+	input string, divider rune, runeWriter func(r rune) rune,
+	ignoreInsideOf [][2]rune, keepRunes ...rune,
+) string {
+	if runeWriter == nil {
+		runeWriter = func(r rune) rune { return r }
+	}
+	builder := ([]rune(input))[:0]
 	var appendDash bool
-	var expectToCloseOpened rune // for cases to check for a rune to close like parenthesis
-	for _, r := range base {
-		if expectToCloseOpened != 0 && r != expectToCloseOpened {
+
+	var ignoreStack []rune    // stack to track nested ignores
+	for _, r := range input { // If this rune opens an ignore section, push its closing rune
+		ignoreStack = checkIgnores(r, ignoreStack, ignoreInsideOf, &appendDash)
+		if len(ignoreStack) > 0 {
 			continue
 		}
-		expectToCloseOpened = 0
+
+		// Handle normal runes
 		if unicode.IsLetter(r) || unicode.IsDigit(r) || slices.Contains(keepRunes, r) {
-			if appendDash && builder.Len() > 0 {
-				builder.WriteRune(divider)
+			if appendDash && len(builder) > 0 {
+				builder = append(builder, divider)
 			}
-			builder.WriteRune(unicode.ToLower(r))
+			builder = append(builder, runeWriter(r))
 			appendDash = false
 		} else {
-			foundIdx := slices.IndexFunc(ignoreInsideOf, func(toIgnore [2]rune) bool { return toIgnore[0] == r })
-			if foundIdx >= 0 {
-				expectToCloseOpened = ignoreInsideOf[foundIdx][1]
-			}
 			appendDash = true
 		}
 	}
-	res := builder.String()
-	return res
+
+	return string(builder)
+}
+
+func NormalizeName(base string, divider rune, ignoreInsideOf [][2]rune, keepRunes ...rune) string {
+	return SanitizeName(base, divider, unicode.ToLower, ignoreInsideOf, keepRunes...)
 }
