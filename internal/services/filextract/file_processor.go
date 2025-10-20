@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	"github.com/Jictyvoo/ink_stream/internal/services/filextract/cbxr"
-	"github.com/Jictyvoo/ink_stream/internal/utils"
 )
 
 type FileProcessorWorker struct {
@@ -82,9 +81,7 @@ func (fp *FileProcessorWorker) processFile(file FileInfo) (resultErr error) {
 			continue
 		}
 
-		fileBase := fp.normalizeFileName(filepath.Base(string(fileName)))
-		fileFolder := fp.normalizeFileName(filepath.Dir(string(fileName)))
-		fileName = cbxr.FileName(strings.ToLower(filepath.Join(fileFolder, fileBase)))
+		fileBase := filepath.Base(string(fileName))
 		if strings.HasPrefix(strings.ToLower(fileBase), "cred") &&
 			len(fileBase) >= len("000.jpeg") {
 			continue
@@ -100,12 +97,6 @@ func (fp *FileProcessorWorker) processFile(file FileInfo) (resultErr error) {
 		slog.String("inputFile", file.CompleteName),
 	)
 	return err
-}
-
-func (fp *FileProcessorWorker) normalizeFileName(input string) string {
-	ignoreInsideOf := [][2]rune{{'(', ')'}, {'{', '}'}, {'[', ']'}}
-	fileBase := utils.NormalizeName(input, '_', ignoreInsideOf, '.', '-')
-	return fileBase
 }
 
 func (fp *FileProcessorWorker) newExtractor(
