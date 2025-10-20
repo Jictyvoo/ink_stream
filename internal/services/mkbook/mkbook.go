@@ -22,6 +22,7 @@ import (
 type imageSectionData struct {
 	pageData               tmplepub.ImageData
 	sectionTitle, fileName string
+	chapterID              string
 }
 
 type EpubMounter struct {
@@ -78,6 +79,12 @@ func (em *EpubMounter) registerMainCSS() (err error) {
 }
 
 func (em *EpubMounter) Handler(filename string, callback imgprocessor.WriterCallback) error {
+	// Capture chapter based on original filename directory before normalization
+	chapterID := utils.SanitizeName(
+		filepath.Dir(filename), ' ', nil,
+		utils.DefaultInsideIgnore(), '.', '-',
+	)
+
 	// Write image to the temp output directory using the outdirwriter to avoid memory usage
 	imgMetadata, absPath, err := em.outWriter.ExecuteFileWrite(filename, callback)
 	if err != nil {
@@ -101,12 +108,12 @@ func (em *EpubMounter) Handler(filename string, callback imgprocessor.WriterCall
 		ImageWidth:  int(imgMetadata.Width),
 		ImageHeight: int(imgMetadata.Height),
 	}
-	return em.AddImagePage(pageData, filename, filename)
+	return em.AddImagePage(pageData, filename, filename, chapterID)
 }
 
 func (em *EpubMounter) AddImagePage(
 	pageData tmplepub.ImageData,
-	sectionTitle, fileName string,
+	sectionTitle, fileName, chapterID string,
 ) error {
 	// Provide sensible defaults so the page renders even if caller omitted details
 	if len(pageData.PanelImages) == 0 {
@@ -140,6 +147,7 @@ func (em *EpubMounter) AddImagePage(
 		pageData:     pageData,
 		sectionTitle: sectionTitle,
 		fileName:     fileName,
+		chapterID:    chapterID,
 	})
 	return nil
 }
@@ -156,14 +164,31 @@ func (em *EpubMounter) Flush() error {
 		return strings.Compare(a.fileName, b.fileName)
 	})
 
+	// Strategy: the first page seen for a chapter becomes the top-level section;
+	// remaining pages in the same chapter become subsections under it.
+	parentByChapter := make(map[string]string)
 	tmpl := tmplepub.EpubImagePage()
 	for _, imgSection := range em.imageSections {
 		var buf strings.Builder
 		if err := tmpl.Execute(&buf, imgSection.pageData); err != nil {
 			return err
 		}
-		// Add the rendered XHTML body as a section; go-epub will wrap it with full XHTML
-		_, err := em.epub.AddSection(
+
+		if parent, ok := parentByChapter[imgSection.chapterID]; ok {
+			// Subsequent pages: add as subsection under the first page's section
+			if _, err := em.epub.AddSubSection(
+				parent, buf.String(),
+				imgSection.sectionTitle,
+				imgSection.fileName,
+				em.styleLocation,
+			); err != nil {
+				return fmt.Errorf("error while adding subsection: %w", err)
+			}
+			continue
+		}
+
+		// First page of this chapter: add as the parent section
+		parentFN, err := em.epub.AddSection(
 			buf.String(),
 			imgSection.sectionTitle,
 			imgSection.fileName,
@@ -172,6 +197,7 @@ func (em *EpubMounter) Flush() error {
 		if err != nil {
 			return fmt.Errorf("error while adding section: %w", err)
 		}
+		parentByChapter[imgSection.chapterID] = parentFN
 	}
 
 	file, err := os.Create(em.outDir + ".epub")
