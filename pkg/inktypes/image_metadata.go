@@ -26,8 +26,11 @@ type (
 )
 
 func NewImageEncodingOptions(quality uint8, format ImageFormat) ImageEncodingOptions {
-	quality = min(quality, 100)
+	quality = min(max(quality, 60), 100)
 	format = ImageFormat(strings.ToLower(string(format)))
+	if format == "" {
+		format = FormatJPEG
+	}
 	return ImageEncodingOptions{Quality: quality, Format: format}
 }
 
