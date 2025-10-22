@@ -14,6 +14,7 @@ import (
 	"github.com/Jictyvoo/ink_stream/internal/services/filextract"
 	"github.com/Jictyvoo/ink_stream/internal/services/filextract/cbxr"
 	"github.com/Jictyvoo/ink_stream/internal/utils"
+	"github.com/Jictyvoo/ink_stream/pkg/bootstrap"
 )
 
 func main() {
@@ -58,7 +59,7 @@ func main() {
 			fp := filextract.NewFileProcessorWorker(
 				sendChannel, outputFolder,
 				func(outputDir string) (filextract.FileOutputWriter, error) {
-					return NewFileWriterWrapper(outputDir)
+					return bootstrap.NewFileWriterWrapper(outputDir)
 				},
 			)
 			defer wg.Done()
