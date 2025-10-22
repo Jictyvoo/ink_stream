@@ -7,18 +7,19 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/Jictyvoo/ink_stream/pkg/bootstrap"
 	"github.com/Jictyvoo/ink_stream/pkg/deviceprof"
 	"github.com/Jictyvoo/ink_stream/pkg/inktypes"
 )
 
-func parseArgs(cliArgs *Options) {
+func parseArgs(cliArgs *bootstrap.Options) {
 	flag.StringVar(&cliArgs.SourceFolder, "src", "", "Target folder where files are stored")
 	flag.StringVar(&cliArgs.OutputFolder, "out", "", "Output folder where files will be saved")
 	flag.BoolVar(&cliArgs.RotateImage, "rotate", false, "Rotate image files")
 	flag.BoolVar(&cliArgs.ColoredPages, "colored", false, "Colored pages")
 	flag.BoolVar(&cliArgs.AddMargins, "margins", false, "Add margin on image")
 	flag.BoolVar(&cliArgs.StretchImage, "stretch", true, "Stretch image files")
-	cropLevel := flag.Uint("crop-level", uint(CropBasic), "Crop image level")
+	cropLevel := flag.Uint("crop-level", uint(bootstrap.CropBasic), "Crop image level")
 
 	var (
 		targetDevice  string
@@ -28,8 +29,8 @@ func parseArgs(cliArgs *Options) {
 		imgOutQuality uint
 	)
 	flag.StringVar(&targetDevice, "profile", "", "Target device name")
-	flag.StringVar(&outFormat, "format", string(FormatEpub), "Output format")
-	flag.StringVar(&imgOutFormat, "img-format", string(ImageJPEG), "Image output format")
+	flag.StringVar(&outFormat, "format", string(bootstrap.FormatEpub), "Output format")
+	flag.StringVar(&imgOutFormat, "img-format", string(bootstrap.ImageJPEG), "Image output format")
 	flag.UintVar(&imgOutQuality, "img-quality", 85, "Image output quality")
 	flag.StringVar(
 		&readDirection, "read-direction",
@@ -37,22 +38,22 @@ func parseArgs(cliArgs *Options) {
 	)
 	flag.Parse()
 
-	cliArgs.CropLevel = CropBasic
+	cliArgs.CropLevel = bootstrap.CropBasic
 	if cropLevel != nil {
-		cliArgs.CropLevel = CropStyle(*cropLevel)
+		cliArgs.CropLevel = bootstrap.CropStyle(*cropLevel)
 	}
 	cliArgs.TargetDevice = deviceprof.DeviceType(targetDevice)
-	cliArgs.OutputFormat = OutputFormat(outFormat)
+	cliArgs.OutputFormat = bootstrap.OutputFormat(outFormat)
 	cliArgs.ImageQuality = uint8(imgOutQuality)
-	cliArgs.ImageFormat = ImageFormat(imgOutFormat)
-	if cliArgs.ImageFormat == ImagePNG {
+	cliArgs.ImageFormat = bootstrap.ImageFormat(imgOutFormat)
+	if cliArgs.ImageFormat == bootstrap.ImagePNG {
 		cliArgs.ImageQuality = 100
 	}
 
 	if cliArgs.OutputFolder == "" {
 		cliArgs.OutputFolder = defaultOutputFolder(cliArgs.SourceFolder)
 	}
-	cliArgs.ReadDirection = ReadDirection(readDirection)
+	cliArgs.ReadDirection = bootstrap.ReadDirection(readDirection)
 	cliErr := func(err error) {
 		flag.Usage()
 		log.Fatal(err)

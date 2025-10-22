@@ -19,12 +19,13 @@ import (
 	"github.com/Jictyvoo/ink_stream/internal/services/mkbook"
 	"github.com/Jictyvoo/ink_stream/internal/services/outdirwriter"
 	"github.com/Jictyvoo/ink_stream/internal/utils"
+	"github.com/Jictyvoo/ink_stream/pkg/bootstrap"
 	"github.com/Jictyvoo/ink_stream/pkg/imgutils"
 	"github.com/Jictyvoo/ink_stream/pkg/inktypes"
 )
 
 func main() {
-	var cliArgs Options
+	var cliArgs bootstrap.Options
 	parseArgs(&cliArgs)
 
 	{
@@ -42,7 +43,7 @@ func main() {
 		sendChannel = make(chan filextract.FileInfo)
 	)
 
-	imgPipeline, err := BuildPipeline(cliArgs)
+	imgPipeline, err := bootstrap.BuildPipeline(cliArgs)
 	if err != nil {
 		slog.Error("Failed to build pipeline", slog.String("error", err.Error()))
 		return
@@ -104,22 +105,22 @@ func main() {
 }
 
 func fileWriterGenerator(
-	format OutputFormat, readDirection ReadDirection,
+	format bootstrap.OutputFormat, readDirection bootstrap.ReadDirection,
 ) (func(outputDir string) (imgprocessor.FileWriter, error), error) {
 	direction := inktypes.NewReadDirection(string(readDirection))
 	if direction == inktypes.ReadUnknown {
 		return nil, fmt.Errorf("unknown read direction `%s`", readDirection)
 	}
 	switch format {
-	case FormatFolder:
+	case bootstrap.FormatFolder:
 		return func(outputDir string) (imgprocessor.FileWriter, error) {
 			return outdirwriter.NewWriterHandle(outputDir)
 		}, nil
-	case FormatEpub:
+	case bootstrap.FormatEpub:
 		return func(outputDir string) (imgprocessor.FileWriter, error) {
 			return mkbook.NewEpubMounter(outputDir, direction)
 		}, nil
-	case FormatMobi:
+	case bootstrap.FormatMobi:
 		return nil, errors.New("mobi format not supported yet")
 	default:
 		return nil, errors.New("unknown output format")
