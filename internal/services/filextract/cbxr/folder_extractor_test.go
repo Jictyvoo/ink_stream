@@ -35,6 +35,15 @@ func TestFolderExtractor_FileSeq(t *testing.T) {
 			}
 		}
 
+		// Determine expected image files (full paths)
+		expectedFiles := make([]string, 0, len(testFiles))
+		for filename := range maps.Keys(testFiles) {
+			if slices.Contains(imgutils.SupportedImageFormats(), filepath.Ext(filename)) {
+				expectedFiles = append(expectedFiles, filepath.Join(tempDir, filename))
+			}
+		}
+		expectedCount := len(expectedFiles)
+
 		// Create FolderExtractor
 		folder, err := os.Open(tempDir)
 		if err != nil {
@@ -47,33 +56,12 @@ func TestFolderExtractor_FileSeq(t *testing.T) {
 			t.Fatalf("Failed to create FolderExtractor: %v", newExtractorErr.Error())
 		}
 
-		count := 0
-		seenFiles := make(map[string]bool)
-		for filename, result := range extractor.FileSeq() {
-			count++
-			seenFiles[string(filename)] = true
-			if result.Error != nil {
-				t.Errorf("Unexpected error for file %s: %v", filename, result.Error)
-			}
-			if result.Data == nil {
-				t.Errorf("Expected data for file %s, got nil", filename)
-			}
+		suite := ExtractTestSuite{
+			WantErr:           false,
+			WantFiles:         expectedFiles,
+			ExpectedCount:     &expectedCount,
+			RequireDataNonNil: true,
 		}
-		// Check that we found expected files
-		expectedFiles := make([]string, 0, len(testFiles))
-		for filename := range maps.Keys(testFiles) {
-			if slices.Contains(imgutils.SupportedImageFormats(), filepath.Ext(filename)) {
-				expectedFiles = append(expectedFiles, filepath.Join(tempDir, filename))
-			}
-		}
-		for _, expectedFile := range expectedFiles {
-			if !seenFiles[expectedFile] {
-				t.Errorf("Expected file %s was not found in iteration", expectedFile)
-			}
-		}
-		// Should have found 4 files (jpg, png, gif, jpeg)
-		if count != 4 {
-			t.Errorf("Expected 4 files, got %d", count)
-		}
+		suite.Run(t, extractor)
 	})
 }

@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"os"
 	"path/filepath"
-	"slices"
 	"strings"
 	"testing"
 )
@@ -92,57 +91,23 @@ func TestCBZExtractor_FileSeq(t *testing.T) {
 				t.Fatalf("Failed to write file: %v", err)
 			}
 
-			// Create FolderExtractor
-			folder, openErr := os.Open(filename)
+			// Create CBZExtractor
+			zipFile, openErr := os.Open(filename)
 			if openErr != nil {
-				t.Fatalf("Failed to open folder: %v", openErr)
+				t.Fatalf("Failed to open zip file: %v", openErr)
 			}
-			defer folder.Close()
-			extractor, newExtractorErr := NewCBZExtractor(folder)
+			defer zipFile.Close()
+			extractor, newExtractorErr := NewCBZExtractor(zipFile)
 			if newExtractorErr != nil {
 				t.Fatalf("Failed to create extractor: %v", newExtractorErr.Error())
 			}
 
-			var files []string
-			var fileData map[string][]byte
-			if tt.wantFileData != nil {
-				fileData = make(map[string][]byte)
+			suite := ExtractTestSuite{
+				WantErr:      tt.wantErr,
+				WantFiles:    tt.wantFiles,
+				WantFileData: tt.wantFileData,
 			}
-
-			for name, result := range extractor.FileSeq() {
-				files = append(files, string(name))
-				if tt.wantFileData != nil {
-					fileData[string(name)] = result.Data
-				}
-				if result.Error != nil && !tt.wantErr {
-					t.Errorf("Unexpected error: %v", result.Error)
-				}
-			}
-
-			if len(files) != len(tt.wantFiles) {
-				t.Errorf("Expected %d files, got %d", len(tt.wantFiles), len(files))
-			}
-			for _, wantFile := range tt.wantFiles {
-				if !slices.Contains(files, wantFile) {
-					t.Errorf("Expected file %q not found", wantFile)
-				}
-			}
-
-			if tt.wantFileData != nil {
-				for fileName, wantData := range tt.wantFileData {
-					gotData, exists := fileData[fileName]
-					if !exists {
-						t.Errorf("Expected data for file %q not found", fileName)
-						continue
-					}
-					if !bytes.Equal(gotData, wantData) {
-						t.Errorf(
-							"Data mismatch for file %q: got %v, want %v",
-							fileName, gotData, wantData,
-						)
-					}
-				}
-			}
+			suite.Run(t, extractor)
 		})
 	}
 }
