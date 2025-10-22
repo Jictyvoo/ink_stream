@@ -125,3 +125,7 @@ func (imgPipe ImagePipeline) Process(img image.Image) (outputImgs []image.Image,
 
 	return outputImgs, err
 }
+
+func (imgPipe ImagePipeline) PipeSteps() []PipeStep {
+	return imgPipe.fullProcessSteps
+}
